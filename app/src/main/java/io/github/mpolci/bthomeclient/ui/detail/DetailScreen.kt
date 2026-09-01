@@ -5,6 +5,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -24,13 +28,14 @@ fun DetailScreen(
     onChooseImage: () -> Unit,
     onRemoveImage: () -> Unit,
     onSave: () -> Unit,
+    onDelete: () -> Unit,
     onHistory: () -> Unit,
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Sensor details") }, navigationIcon = { IconButton(onClick = onBack) { Text("Back") } }) }) { padding ->
         when {
             state.loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = androidx.compose.ui.Alignment.Center) { Text("Loading sensor…") }
             state.notFound -> Column(Modifier.padding(padding).padding(16.dp)) { Text("Registered sensor not found."); Button(onClick = onBack) { Text("Back") } }
-            else -> DetailContent(state, onNameChange, onRoomChange, onChooseImage, onRemoveImage, onSave, onHistory, Modifier.padding(padding))
+            else -> DetailContent(state, onNameChange, onRoomChange, onChooseImage, onRemoveImage, onSave, onDelete, onHistory, Modifier.padding(padding))
         }
     }
 }
@@ -43,9 +48,11 @@ private fun DetailContent(
     onChooseImage: () -> Unit,
     onRemoveImage: () -> Unit,
     onSave: () -> Unit,
+    onDelete: () -> Unit,
     onHistory: () -> Unit,
     modifier: Modifier,
 ) {
+    var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     val sensor = state.sensor ?: return
     val availability = if (sensor.isOnline) "Online" else "Offline"
     val status = when (sensor.supportStatus) {
@@ -61,14 +68,43 @@ private fun DetailContent(
         SensorDiagnostics(state)
         SensorImage(state.imageUri)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onChooseImage) { Text(if (state.imageUri == null) "Choose image" else "Replace image") }
-            if (state.imageUri != null) OutlinedButton(onClick = onRemoveImage) { Text("Remove image") }
+            Button(onClick = onChooseImage, enabled = !state.isSaving && !state.isDeleting) { Text(if (state.imageUri == null) "Choose image" else "Replace image") }
+            if (state.imageUri != null) OutlinedButton(onClick = onRemoveImage, enabled = !state.isSaving && !state.isDeleting) { Text("Remove image") }
         }
-        OutlinedTextField(state.displayName, onNameChange, Modifier.fillMaxWidth().testTag("detail-name"), label = { Text("Display name") }, enabled = !state.isSaving, isError = state.error != null)
-        OutlinedTextField(state.room, onRoomChange, Modifier.fillMaxWidth().testTag("detail-room"), label = { Text("Room or position (optional)") }, enabled = !state.isSaving)
+        OutlinedTextField(state.displayName, onNameChange, Modifier.fillMaxWidth().testTag("detail-name"), label = { Text("Display name") }, enabled = !state.isSaving && !state.isDeleting, isError = state.error != null)
+        OutlinedTextField(state.room, onRoomChange, Modifier.fillMaxWidth().testTag("detail-room"), label = { Text("Room or position (optional)") }, enabled = !state.isSaving && !state.isDeleting)
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        Button(onClick = onSave, enabled = !state.isSaving && state.displayName.isNotBlank(), modifier = Modifier.fillMaxWidth().testTag("detail-save")) { if (state.isSaving) CircularProgressIndicator(Modifier.size(20.dp)) else Text("Save") }
-        OutlinedButton(onClick = onHistory, modifier = Modifier.fillMaxWidth().testTag("detail-history")) { Text("History") }
+        Button(onClick = onSave, enabled = !state.isSaving && !state.isDeleting && state.displayName.isNotBlank(), modifier = Modifier.fillMaxWidth().testTag("detail-save")) { if (state.isSaving) CircularProgressIndicator(Modifier.size(20.dp)) else Text("Save") }
+        OutlinedButton(onClick = onHistory, enabled = !state.isSaving && !state.isDeleting, modifier = Modifier.fillMaxWidth().testTag("detail-history")) { Text("History") }
+        OutlinedButton(
+            onClick = { showDeleteConfirmation = true },
+            enabled = !state.isSaving && !state.isDeleting,
+            modifier = Modifier.fillMaxWidth().testTag("detail-delete"),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+        ) {
+            if (state.isDeleting) CircularProgressIndicator(Modifier.size(20.dp)) else Text("Remove sensor")
+        }
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Remove registered sensor?") },
+            text = {
+                Text("This deletes the registration and its locally stored history. If the sensor is still advertising, it will appear again as a new sensor.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDelete()
+                    },
+                ) { Text("Remove") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) { Text("Cancel") }
+            },
+        )
     }
 }
 

@@ -107,6 +107,7 @@ class RegistrationViewModelTest {
             registered = listOf(address.value, displayName, room, imageUri)
         }
         override suspend fun updateEditableMetadata(address: SensorAddress, displayName: String, room: String?, imageUri: String?) = Unit
+        override suspend fun deleteRegistration(address: SensorAddress) = Unit
         override suspend fun saveSettings(settings: AppSettings) = Unit
     }
 }

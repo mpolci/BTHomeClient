@@ -78,6 +78,7 @@ class SettingsViewModelTest {
         override suspend fun observe(advertisement: ScanObservation) = Unit
         override suspend fun register(address: SensorAddress, displayName: String, room: String?, imageUri: String?) = Unit
         override suspend fun updateEditableMetadata(address: SensorAddress, displayName: String, room: String?, imageUri: String?) = Unit
+        override suspend fun deleteRegistration(address: SensorAddress) = Unit
         override suspend fun saveSettings(settings: AppSettings) { saveCalls += 1; saved = settings; saveGate?.await(); if (failSave) error("failure") }
     }
 }

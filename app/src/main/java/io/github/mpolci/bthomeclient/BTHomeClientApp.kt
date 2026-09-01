@@ -157,7 +157,10 @@ private fun DetailRoute(
     }
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
-            if (event is io.github.mpolci.bthomeclient.ui.editor.EditorEvent.Saved) onBack()
+            if (event is io.github.mpolci.bthomeclient.ui.editor.EditorEvent.Saved ||
+                event is io.github.mpolci.bthomeclient.ui.editor.EditorEvent.Deleted) {
+                onBack()
+            }
         }
     }
     DetailScreen(
@@ -168,6 +171,7 @@ private fun DetailRoute(
         onChooseImage = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
         onRemoveImage = { viewModel.edit(imageUri = null) },
         onSave = viewModel::save,
+        onDelete = viewModel::delete,
         onHistory = onHistory,
     )
 }

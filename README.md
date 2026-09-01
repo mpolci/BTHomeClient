@@ -6,7 +6,7 @@ Local Android monitoring for unencrypted BTHome v2 environmental BLE advertiseme
 
 - Dashboard with registered sensors first and live unregistered sensors after them.
 - Registration with optional Android Photo Picker image.
-- Detail editing with live protocol diagnostics and a history entry point.
+- Detail editing/removal with live protocol diagnostics and a history entry point.
 - Global persistence/retention settings.
 - Accessible history placeholder while chart visualization is deferred.
 

@@ -25,6 +25,34 @@ import org.junit.Test
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class SensorCoordinatorTest {
     @Test
+    fun `deleting registration exposes fresh observation as unregistered`() = runTest {
+        val registered = FakeRegisteredDao()
+        val readings = FakeReadingDao()
+        val clock = FakeClock(1_000)
+        val coordinator = SensorCoordinator(registered, readings, FakeSettings(), clock, backgroundScope)
+        val address = SensorAddress.require("AA:BB:CC:DD:EE:90")
+        val observation = ScanObservation(
+            address,
+            "Sensor",
+            -50,
+            1_000,
+            BTHomeV2Parser().parse(0xFCD2, bytes("40 01 64")),
+        )
+
+        coordinator.observe(observation)
+        coordinator.register(address, "Registered")
+        runCurrent()
+        assertEquals(true, coordinator.sensors.value.single().isRegistered)
+
+        coordinator.deleteRegistration(address)
+        runCurrent()
+
+        assertEquals(emptyList<RegisteredSensorEntity>(), registered.rows.value)
+        assertEquals(false, coordinator.sensors.value.single().isRegistered)
+        assertEquals(observation, coordinator.sensors.value.single().observation)
+    }
+
+    @Test
     fun `history range and settings APIs expose mapped current values`() = runTest {
         val readings = FakeReadingDao()
         val settings = FakeSettings()

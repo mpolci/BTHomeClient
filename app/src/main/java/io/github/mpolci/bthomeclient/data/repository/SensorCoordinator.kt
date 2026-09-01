@@ -37,6 +37,7 @@ interface SensorManager : SensorFeed {
     fun sensor(address: SensorAddress): Flow<MergedSensor?>
     suspend fun register(address: SensorAddress, displayName: String, room: String? = null, imageUri: String? = null)
     suspend fun updateEditableMetadata(address: SensorAddress, displayName: String, room: String?, imageUri: String?)
+    suspend fun deleteRegistration(address: SensorAddress)
     suspend fun saveSettings(settings: AppSettings)
     fun observeHistory(address: SensorAddress): Flow<List<SensorReading>> = emptyFlow()
     fun observeHistoryInRange(address: SensorAddress, fromEpochMillis: Long, toEpochMillis: Long): Flow<List<SensorReading>> = emptyFlow()
@@ -157,6 +158,12 @@ class SensorCoordinator(
         require(displayName.isNotBlank())
         val current = requireNotNull(registeredSensorDao.findByAddress(address.value))
         registeredSensorDao.update(current.copy(displayName = displayName.trim(), room = room?.trim()?.ifBlank { null }, imageUri = imageUri))
+    }
+
+    override suspend fun deleteRegistration(address: SensorAddress) {
+        mutationMutex.withLock {
+            registeredSensorDao.findByAddress(address.value)?.let { registeredSensorDao.delete(it) }
+        }
     }
 
     override val settings: Flow<AppSettings> get() = settingsRepository.settings

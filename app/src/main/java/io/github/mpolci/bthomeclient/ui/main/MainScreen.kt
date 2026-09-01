@@ -75,7 +75,21 @@ private fun SensorCard(sensor: MergedSensor, onRegister: (MergedSensor) -> Unit,
         SensorSupportStatus.Unsupported -> "$availability · Unsupported"
         SensorSupportStatus.Malformed -> "$availability · Malformed"
     }
-    ElevatedCard(modifier.fillMaxWidth().testTag("sensor-${sensor.address.value}")) {
+    val cardColors = if (sensor.isRegistered) {
+        CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+    } else {
+        CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    ElevatedCard(
+        modifier = modifier.fillMaxWidth().testTag("sensor-${sensor.address.value}"),
+        colors = cardColors,
+    ) {
         Column(Modifier.testTag("sensor-body-${sensor.address.value}").clickable { if (sensor.isRegistered) onDetails(sensor) else onRegister(sensor) }.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column { Text(name, style = MaterialTheme.typography.titleMedium); Text(if (sensor.isRegistered) "Registered · $status" else "Unregistered · $status") }

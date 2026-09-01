@@ -20,6 +20,39 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetailViewModelTest {
+    @Test fun detailDeleteGuardEmitsDeletedAndReportsFailure() = runTest(dispatcher) {
+        val address = SensorAddress.require("AA:BB:CC:DD:EE:D4")
+        val manager = Manager()
+        val viewModel = DetailViewModel(address, manager)
+        manager.flow.value = item(address, "Stored", "Live")
+        runCurrent()
+
+        val gate = CompletableDeferred<Unit>()
+        manager.deleteGate = gate
+        val event = async { viewModel.events.first() }
+        viewModel.delete()
+        viewModel.delete()
+        runCurrent()
+
+        assertEquals(1, manager.deleteCalls)
+        assertEquals(true, viewModel.state.value.isDeleting)
+        gate.complete(Unit)
+        runCurrent()
+        assertEquals(io.github.mpolci.bthomeclient.ui.editor.EditorEvent.Deleted, event.await())
+        assertEquals(false, viewModel.state.value.isDeleting)
+
+        val failingManager = Manager().apply {
+            flow.value = item(address, "Stored", "Live")
+            failDelete = true
+        }
+        val failingViewModel = DetailViewModel(address, failingManager)
+        runCurrent()
+        failingViewModel.delete()
+        runCurrent()
+        assertEquals("Unable to remove sensor.", failingViewModel.state.value.error)
+        assertEquals(false, failingViewModel.state.value.isDeleting)
+    }
+
     @Test fun detailSaveFailureKeepsEditableAndLiveState() = runTest(dispatcher) {
         val address = SensorAddress.require("AA:BB:CC:DD:EE:D3")
         val manager = Manager()
@@ -84,12 +117,20 @@ class DetailViewModelTest {
         var updated: List<Any?> = emptyList()
         var updateGate: CompletableDeferred<Unit>? = null
         var failUpdate = false
+        var deleteCalls = 0
+        var deleteGate: CompletableDeferred<Unit>? = null
+        var failDelete = false
         override val sensors: StateFlow<List<MergedSensor>> = MutableStateFlow(emptyList())
         override val settings: Flow<AppSettings> = MutableStateFlow(AppSettings())
         override fun sensor(address: SensorAddress): Flow<MergedSensor?> = flow
         override suspend fun observe(advertisement: ScanObservation) = Unit
         override suspend fun register(address: SensorAddress, displayName: String, room: String?, imageUri: String?) = Unit
         override suspend fun updateEditableMetadata(address: SensorAddress, displayName: String, room: String?, imageUri: String?) { updateCalls += 1; updated = listOf(address.value, displayName, room, imageUri); updateGate?.await(); if (failUpdate) error("failure") }
+        override suspend fun deleteRegistration(address: SensorAddress) {
+            deleteCalls += 1
+            deleteGate?.await()
+            if (failDelete) error("failure")
+        }
         override suspend fun saveSettings(settings: AppSettings) = Unit
     }
 }

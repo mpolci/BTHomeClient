@@ -6,6 +6,8 @@ The single Android module uses one activity, Compose Material 3, manual `AppCont
 
 Room v1 stores `registered_sensors` and nullable composite `sensor_readings`; DataStore stores sampling and retention preferences.
 
+Removing a registration also deletes its stored readings through the Room foreign-key cascade. A sensor that is still advertising remains in memory and immediately returns to the unregistered section.
+
 ## Responsibilities
 
 - `ble/`: Android scanner, raw framework extraction, and Android-free mapper.

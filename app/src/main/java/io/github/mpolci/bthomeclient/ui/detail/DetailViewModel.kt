@@ -22,6 +22,7 @@ data class DetailState(
     val room: String = "",
     val imageUri: String? = null,
     val isSaving: Boolean = false,
+    val isDeleting: Boolean = false,
     val error: String? = null,
 )
 
@@ -59,7 +60,7 @@ class DetailViewModel(
 
     fun save() = viewModelScope.launch {
         val current = state.value
-        if (current.isSaving || current.displayName.isBlank()) {
+        if (current.isSaving || current.isDeleting || current.displayName.isBlank()) {
             if (current.displayName.isBlank()) mutableState.update { it.copy(error = "A display name is required.") }
             return@launch
         }
@@ -67,5 +68,22 @@ class DetailViewModel(
         runCatching { manager.updateEditableMetadata(address, current.displayName, current.room, current.imageUri) }
             .onSuccess { mutableState.update { it.copy(isSaving = false) }; mutableEvents.emit(EditorEvent.Saved) }
             .onFailure { mutableState.update { it.copy(isSaving = false, error = "Unable to save sensor.") } }
+    }
+
+    fun delete() = viewModelScope.launch {
+        val current = state.value
+        if (current.isSaving || current.isDeleting) return@launch
+
+        mutableState.update { it.copy(isDeleting = true, error = null) }
+        runCatching { manager.deleteRegistration(address) }
+            .onSuccess {
+                mutableState.update { it.copy(isDeleting = false) }
+                mutableEvents.emit(EditorEvent.Deleted)
+            }
+            .onFailure {
+                mutableState.update {
+                    it.copy(isDeleting = false, error = "Unable to remove sensor.")
+                }
+            }
     }
 }

@@ -17,8 +17,8 @@ class DetailScreenTest {
     @get:Rule val compose = createComposeRule()
     @Test fun detailScreenCyclesStatesAndRoutesCallbacks() {
         val state = mutableStateOf(DetailState())
-        var save = 0; var history = 0; var choose = 0; var remove = 0
-        compose.setContent { DetailScreen(state.value, {}, { state.value = state.value.copy(displayName = it) }, { state.value = state.value.copy(room = it) }, { choose++ }, { remove++; state.value = state.value.copy(imageUri = null) }, { save++ }, { history++ }) }
+        var save = 0; var delete = 0; var history = 0; var choose = 0; var remove = 0
+        compose.setContent { DetailScreen(state.value, {}, { state.value = state.value.copy(displayName = it) }, { state.value = state.value.copy(room = it) }, { choose++ }, { remove++; state.value = state.value.copy(imageUri = null) }, { save++ }, { delete++ }, { history++ }) }
         compose.onNodeWithText("Loading sensor…").assertIsDisplayed()
         compose.runOnIdle { state.value = state.value.copy(loading = false, notFound = true) }
         compose.onNodeWithText("Registered sensor not found.").assertIsDisplayed()
@@ -36,9 +36,17 @@ class DetailScreenTest {
         compose.onNodeWithText("Remove image").performScrollTo().performClick(); assertEquals(1, remove)
         compose.onNodeWithTag("detail-save").performScrollTo().performClick(); compose.onNodeWithTag("detail-history").performScrollTo().performClick()
         assertEquals(1, save); assertEquals(1, history)
+        compose.onNodeWithTag("detail-delete").performScrollTo().performClick()
+        compose.onNodeWithText("Remove registered sensor?").assertIsDisplayed()
+        compose.onNodeWithText("Cancel").performClick()
+        assertEquals(0, delete)
+        compose.onNodeWithTag("detail-delete").performScrollTo().performClick()
+        compose.onNodeWithText("Remove").performClick()
+        assertEquals(1, delete)
         compose.runOnIdle { state.value = state.value.copy(error = "Unable to save sensor.", isSaving = true) }
         compose.onNodeWithText("Unable to save sensor.").assertIsDisplayed()
         compose.onNodeWithTag("detail-save").assertIsNotEnabled()
+        compose.onNodeWithTag("detail-delete").assertIsNotEnabled()
     }
     private fun contentState(): DetailState {
         val address = SensorAddress.require("AA:BB:CC:DD:EE:99")
