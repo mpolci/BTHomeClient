@@ -22,9 +22,8 @@ class MainScreenCapabilityTest {
         var settings = 0
         var bluetooth = 0
         var retry = 0
-        lateinit var state: MutableState<MainScanState>
+        val state = mutableStateOf(MainScanState())
         compose.setContent {
-            state = mutableStateOf(MainScanState())
             MainScreen(state.value, { allow++ }, { settings++ }, { bluetooth++ }, { retry++ }, { settings++ }, {}, {})
         }
         fun show(next: MainScanState) { compose.runOnIdle { state.value = next }; compose.waitForIdle() }

@@ -23,12 +23,11 @@ class RegistrationScreenTest {
 
     @Test
     fun registrationScreenEditsAndReflectsImageErrorAndSavingState() {
-        lateinit var state: MutableState<RegistrationState>
+        val state = mutableStateOf(RegistrationState(address = SensorAddress.require("AA:BB:CC:DD:EE:FF")))
         var saveCalls = 0
         var chooseCalls = 0
         var removeCalls = 0
         compose.setContent {
-            state = mutableStateOf(RegistrationState(address = SensorAddress.require("AA:BB:CC:DD:EE:FF")))
             RegistrationScreen(
                 state = state.value,
                 onBack = {},

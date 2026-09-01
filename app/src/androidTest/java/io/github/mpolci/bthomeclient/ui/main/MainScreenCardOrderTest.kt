@@ -4,6 +4,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.mpolci.bthomeclient.bthome.BTHomeV2Parser
 import io.github.mpolci.bthomeclient.domain.model.MergedSensor
@@ -36,6 +37,7 @@ class MainScreenCardOrderTest {
         assertTrue(firstBounds.top < secondBounds.top && secondBounds.top < thirdBounds.top)
         compose.onNodeWithText("Registered · Offline").assertIsDisplayed()
         compose.onNodeWithText("Unregistered · Online").assertIsDisplayed()
-        compose.onNodeWithText("Unregistered · Unsupported").assertIsDisplayed()
+        compose.onNodeWithTag("sensor-${thirdAddress.value}").performScrollTo()
+        compose.onNodeWithText("Unregistered · Online · Unsupported").assertIsDisplayed()
     }
 }

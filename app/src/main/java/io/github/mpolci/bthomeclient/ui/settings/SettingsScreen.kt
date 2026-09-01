@@ -26,7 +26,7 @@ fun SettingsScreen(
         Column(Modifier.padding(padding).padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("These global settings affect persistence for registered sensors only.")
             Text("Minimum persistence interval", style = MaterialTheme.typography.titleMedium)
-            intervals.forEach { interval -> ChoiceRow("${interval / 60_000} minutes", state.pending.minimumPersistenceIntervalMillis == interval, { onInterval(interval) }, "settings-interval-$interval") }
+            intervals.forEach { interval -> ChoiceRow(intervalLabel(interval), state.pending.minimumPersistenceIntervalMillis == interval, { onInterval(interval) }, "settings-interval-$interval") }
             Text("Reading retention", style = MaterialTheme.typography.titleMedium)
             retentions.forEach { retention -> ChoiceRow(retentionLabel(retention), state.pending.retentionDurationMillis == retention, { onRetention(retention) }, "settings-retention-${retention ?: "unlimited"}") }
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -46,4 +46,9 @@ private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit, tag
 private fun retentionLabel(retention: Long?): String = when (retention) {
     null -> "Unlimited"
     else -> "${retention / 86_400_000} days"
+}
+
+private fun intervalLabel(interval: Long): String {
+    val minutes = interval / 60_000
+    return if (minutes == 1L) "1 minute" else "$minutes minutes"
 }

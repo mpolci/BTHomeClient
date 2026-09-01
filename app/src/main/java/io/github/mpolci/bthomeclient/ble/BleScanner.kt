@@ -52,11 +52,20 @@ class AndroidBleScanner(
             }
             override fun onScanFailed(errorCode: Int) { trySend(ScanEvent.Failure(ScanFailure.Platform(errorCode))); close() }
         }
-        try { scanner.startScan(listOf(ScanFilter.Builder().setServiceUuid(BTHOME_UUID).build()), ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(), callback) }
+        try { scanner.startScan(bthomeScanFilters(), ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(), callback) }
         catch (_: SecurityException) { trySend(ScanEvent.Failure(ScanFailure.PermissionDenied)); close() }
         catch (_: IllegalStateException) { trySend(ScanEvent.Failure(ScanFailure.Unavailable)); close() }
         catch (_: IllegalArgumentException) { trySend(ScanEvent.Failure(ScanFailure.Unavailable)); close() }
         awaitClose { try { scanner.stopScan(callback) } catch (_: SecurityException) {} }
     }
     private companion object { val BTHOME_UUID = ParcelUuid(UUID.fromString("0000fcd2-0000-1000-8000-00805f9b34fb")) }
+}
+
+fun bthomeScanFilters(): List<ScanFilter> {
+    // Some Android offload stacks do not match empty or masked service-data filters.
+    val uuid = ParcelUuid(UUID.fromString("0000fcd2-0000-1000-8000-00805f9b34fb"))
+    val deviceInformation = byteArrayOf(0x40, 0x41, 0x44, 0x45, 0x20, 0x21, 0x24, 0x25)
+    return deviceInformation.map { value ->
+        ScanFilter.Builder().setServiceData(uuid, byteArrayOf(value)).build()
+    }
 }
