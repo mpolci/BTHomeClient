@@ -1,0 +1,207 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "3814e9864df0eb7bf3a913ac4a13dc4b",
+    "entities": [
+      {
+        "tableName": "registered_sensors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`address` TEXT NOT NULL, `displayName` TEXT NOT NULL, `room` TEXT, `imageUri` TEXT, `registrationOrder` INTEGER NOT NULL, `advertisedName` TEXT, `lastSeenEpochMillis` INTEGER, `lastRssi` INTEGER, `lastBTHomeVersion` INTEGER, `lastEncrypted` INTEGER, `lastTriggerBased` INTEGER, `deviceType` INTEGER, `firmwareVersion` TEXT, `protocolDiagnostic` TEXT, `lastSupportStatus` TEXT, `supportedMeasurementTypes` TEXT, PRIMARY KEY(`address`))",
+        "fields": [
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "room",
+            "columnName": "room",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageUri",
+            "columnName": "imageUri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "registrationOrder",
+            "columnName": "registrationOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "advertisedName",
+            "columnName": "advertisedName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastSeenEpochMillis",
+            "columnName": "lastSeenEpochMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastRssi",
+            "columnName": "lastRssi",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastBTHomeVersion",
+            "columnName": "lastBTHomeVersion",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastEncrypted",
+            "columnName": "lastEncrypted",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastTriggerBased",
+            "columnName": "lastTriggerBased",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "deviceType",
+            "columnName": "deviceType",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "firmwareVersion",
+            "columnName": "firmwareVersion",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "protocolDiagnostic",
+            "columnName": "protocolDiagnostic",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastSupportStatus",
+            "columnName": "lastSupportStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "supportedMeasurementTypes",
+            "columnName": "supportedMeasurementTypes",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "address"
+          ]
+        }
+      },
+      {
+        "tableName": "sensor_readings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sensorAddress` TEXT NOT NULL, `receptionEpochMillis` INTEGER NOT NULL, `bthomeTimestampEpochMillis` INTEGER, `temperatureCelsius` REAL, `humidityPercent` REAL, `pressureHectopascals` REAL, `carbonDioxidePpm` INTEGER, `batteryPercent` INTEGER, `packetId` INTEGER, FOREIGN KEY(`sensorAddress`) REFERENCES `registered_sensors`(`address`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensorAddress",
+            "columnName": "sensorAddress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "receptionEpochMillis",
+            "columnName": "receptionEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bthomeTimestampEpochMillis",
+            "columnName": "bthomeTimestampEpochMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "temperatureCelsius",
+            "columnName": "temperatureCelsius",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "humidityPercent",
+            "columnName": "humidityPercent",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "pressureHectopascals",
+            "columnName": "pressureHectopascals",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "carbonDioxidePpm",
+            "columnName": "carbonDioxidePpm",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "batteryPercent",
+            "columnName": "batteryPercent",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "packetId",
+            "columnName": "packetId",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sensor_readings_sensorAddress",
+            "unique": false,
+            "columnNames": [
+              "sensorAddress"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sensor_readings_sensorAddress` ON `${TABLE_NAME}` (`sensorAddress`)"
+          },
+          {
+            "name": "index_sensor_readings_sensorAddress_receptionEpochMillis",
+            "unique": false,
+            "columnNames": [
+              "sensorAddress",
+              "receptionEpochMillis"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sensor_readings_sensorAddress_receptionEpochMillis` ON `${TABLE_NAME}` (`sensorAddress`, `receptionEpochMillis`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "registered_sensors",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sensorAddress"
+            ],
+            "referencedColumns": [
+              "address"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3814e9864df0eb7bf3a913ac4a13dc4b')"
+    ]
+  }
+}
