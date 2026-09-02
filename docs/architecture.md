@@ -4,7 +4,7 @@ The single Android module uses one activity, Compose Material 3, manual `AppCont
 
 `AndroidBleScanner` filters FCD2 and emits typed callbackFlow events. The Android-free mapper/parser decodes protocol data. `SensorCoordinator` merges live observations with Room registrations, prunes stale live devices, preserves registered offline devices, and exposes state to ViewModels. Navigation owns scanning lifecycle: only the main route starts scanning.
 
-Room v2 stores `registered_sensors`, `downloaded_history_samples`, and `history_sync_states`. BTHome advertisements update only live state and registered technical metadata; DataStore stores the downloaded-history retention preference.
+Room stores `registered_sensors`, `downloaded_history_samples`, and `history_sync_states`. BTHome advertisements update only live state and registered technical metadata; DataStore stores the downloaded-history retention preference.
 
 Removing a registration also deletes downloaded history and its sync state through Room foreign-key cascades. A sensor that is still advertising remains in memory and immediately returns to the unregistered section.
 
