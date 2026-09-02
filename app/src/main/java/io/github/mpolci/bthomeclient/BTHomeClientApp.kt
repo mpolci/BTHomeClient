@@ -44,7 +44,8 @@ import io.github.mpolci.bthomeclient.ui.detail.DetailScreen
 import io.github.mpolci.bthomeclient.ui.detail.DetailViewModel
 import io.github.mpolci.bthomeclient.ui.settings.SettingsScreen
 import io.github.mpolci.bthomeclient.ui.settings.SettingsViewModel
-import io.github.mpolci.bthomeclient.ui.history.HistoryPlaceholderScreen
+import io.github.mpolci.bthomeclient.ui.history.HistoryScreen
+import io.github.mpolci.bthomeclient.ui.history.HistoryViewModel
 import kotlinx.coroutines.flow.collect
 
 @Composable
@@ -85,9 +86,15 @@ fun BTHomeClientApp() {
         composable(AppRoutes.History) { entry ->
             val address = AppRoutes.address(entry.arguments?.getString("address"))
             if (address == null) InvalidRoute { navController.popBackStack() }
-            else HistoryPlaceholderScreen(address.value) { navController.popBackStack() }
+            else HistoryRoute(address, app.appContainer) { navController.popBackStack() }
         }
     }
+}
+
+@Composable private fun HistoryRoute(address: io.github.mpolci.bthomeclient.domain.model.SensorAddress, container: AppContainer, onBack: () -> Unit) {
+    val viewModel: HistoryViewModel = viewModel(key = "history-${address.value}", factory = simpleViewModelFactory { container.createHistoryViewModel(address) })
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    HistoryScreen(address.value, state, viewModel::download, onBack)
 }
 
 @Composable

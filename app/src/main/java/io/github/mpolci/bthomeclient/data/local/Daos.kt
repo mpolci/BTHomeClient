@@ -46,11 +46,20 @@ interface DownloadedHistoryDao {
     @Query("SELECT * FROM downloaded_history_samples WHERE sensorAddress = :address ORDER BY acquisitionSequence ASC")
     fun observeSamples(address: String): Flow<List<DownloadedHistorySampleEntity>>
 
+    @Query("SELECT * FROM downloaded_history_samples WHERE sensorAddress = :address ORDER BY acquisitionSequence ASC")
+    suspend fun samples(address: String): List<DownloadedHistorySampleEntity>
+
+    @Query("SELECT * FROM downloaded_history_samples WHERE sensorAddress = :address AND sourceFormatVersion = :formatVersion AND sourceGeneration = :generation AND sourceSlot = :slot")
+    suspend fun samplesAtSource(address: String, formatVersion: Int, generation: Long, slot: Int): List<DownloadedHistorySampleEntity>
+
     @Query("SELECT * FROM downloaded_history_samples WHERE sensorAddress = :address AND recordedEpochMillis BETWEEN :fromEpochMillis AND :toEpochMillis ORDER BY acquisitionSequence ASC")
     fun observeSamplesInRange(address: String, fromEpochMillis: Long, toEpochMillis: Long): Flow<List<DownloadedHistorySampleEntity>>
 
     @Insert
     suspend fun insertSamples(samples: List<DownloadedHistorySampleEntity>)
+
+    @androidx.room.Update
+    suspend fun updateSample(sample: DownloadedHistorySampleEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSyncState(state: HistorySyncStateEntity)
@@ -64,6 +73,32 @@ interface DownloadedHistoryDao {
         state: HistorySyncStateEntity,
     ) {
         insertSamples(samples)
+        insertSyncState(state)
+    }
+
+    @Transaction
+    suspend fun commitDownload(
+        samples: List<DownloadedHistorySampleEntity>,
+        state: HistorySyncStateEntity,
+        mergeExactSourceRecords: Boolean,
+    ) {
+        if (!mergeExactSourceRecords) {
+            insertSamples(samples)
+        } else {
+            samples.forEach { sample ->
+                val existing = samplesAtSource(
+                    sample.sensorAddress,
+                    sample.sourceFormatVersion,
+                    sample.sourceGeneration,
+                    sample.sourceSlot,
+                ).firstOrNull { it.rawPosition.contentEquals(sample.rawPosition) }
+                if (existing == null) {
+                    insertSamples(listOf(sample))
+                } else {
+                    updateSample(sample.copy(id = existing.id, acquisitionSequence = existing.acquisitionSequence))
+                }
+            }
+        }
         insertSyncState(state)
     }
 }

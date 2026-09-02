@@ -8,12 +8,15 @@ import io.github.mpolci.bthomeclient.data.repository.SensorCoordinator
 import io.github.mpolci.bthomeclient.data.settings.SettingsRepository
 import io.github.mpolci.bthomeclient.util.SystemClock
 import io.github.mpolci.bthomeclient.ble.AndroidBleScanner
+import io.github.mpolci.bthomeclient.ble.AndroidHistoryDownloader
 import io.github.mpolci.bthomeclient.bthome.BTHomeV2Parser
 import io.github.mpolci.bthomeclient.ui.main.MainScanViewModel
 import io.github.mpolci.bthomeclient.ui.registration.RegistrationViewModel
 import io.github.mpolci.bthomeclient.ui.detail.DetailViewModel
 import io.github.mpolci.bthomeclient.ui.settings.SettingsViewModel
+import io.github.mpolci.bthomeclient.ui.history.HistoryViewModel
 import io.github.mpolci.bthomeclient.domain.model.SensorAddress
+import io.github.mpolci.bthomeclient.data.repository.HistoryRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +40,11 @@ class AppContainer(context: Context) {
 
     val settings = sensorCoordinator.settings
     val bleScanner = AndroidBleScanner(context, SystemClock, BTHomeV2Parser())
+    private val historyRepository = HistoryRepository(AndroidHistoryDownloader(context), database.downloadedHistoryDao(), SystemClock)
     fun createMainScanViewModel() = MainScanViewModel(bleScanner, sensorCoordinator)
     fun createRegistrationViewModel(address: SensorAddress) = RegistrationViewModel(address, sensorCoordinator)
     fun createDetailViewModel(address: SensorAddress) = DetailViewModel(address, sensorCoordinator)
     fun createSettingsViewModel() = SettingsViewModel(sensorCoordinator)
+    fun historyRepository() = historyRepository
+    fun createHistoryViewModel(address: SensorAddress) = HistoryViewModel(address, historyRepository)
 }

@@ -175,6 +175,8 @@ class SensorCoordinatorTest {
         var lastRetentionCutoff: Long? = null
 
         override suspend fun syncState(address: String) = state?.takeIf { it.sensorAddress == address }
+        override suspend fun samples(address: String) = samples.value.filter { it.sensorAddress == address }
+        override suspend fun samplesAtSource(address: String, formatVersion: Int, generation: Long, slot: Int) = samples.value.filter { it.sensorAddress == address && it.sourceFormatVersion == formatVersion && it.sourceGeneration == generation && it.sourceSlot == slot }
         override fun observeSampleCount(address: String) = samples.map { rows -> rows.count { it.sensorAddress == address } }
         override fun observeSamples(address: String) = samples.map { rows -> rows.filter { it.sensorAddress == address } }
         override fun observeSamplesInRange(address: String, fromEpochMillis: Long, toEpochMillis: Long) = samples.map { rows ->
@@ -182,6 +184,9 @@ class SensorCoordinatorTest {
         }
         override suspend fun insertSamples(samples: List<DownloadedHistorySampleEntity>) {
             this.samples.value += samples
+        }
+        override suspend fun updateSample(sample: DownloadedHistorySampleEntity) {
+            samples.value = samples.value.map { if (it.id == sample.id) sample else it }
         }
         override suspend fun insertSyncState(state: HistorySyncStateEntity) {
             this.state = state
