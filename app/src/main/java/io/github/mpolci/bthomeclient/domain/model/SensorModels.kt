@@ -1,6 +1,7 @@
 package io.github.mpolci.bthomeclient.domain.model
 
 import io.github.mpolci.bthomeclient.bthome.BTHomeDeviceInformation
+import io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements
 import io.github.mpolci.bthomeclient.bthome.BTHomeParseResult
 import io.github.mpolci.bthomeclient.bthome.BTHomeProtocolMetadata
 
