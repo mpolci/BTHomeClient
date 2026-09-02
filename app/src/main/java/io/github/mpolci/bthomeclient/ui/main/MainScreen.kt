@@ -67,7 +67,7 @@ fun MainScreen(
 @Composable
 private fun SensorCard(sensor: MergedSensor, onRegister: (MergedSensor) -> Unit, onDetails: (MergedSensor) -> Unit, modifier: Modifier) {
     var expanded by rememberSaveable(sensor.address.value) { mutableStateOf(false) }
-    val reading = mergedMeasurements(sensor.observation?.measurements, sensor.latestReading?.measurements)
+    val measurements = sensor.observation?.measurements
     val name = sensor.registeredSensor?.displayName ?: sensor.observation?.advertisedName ?: sensor.address.value
     val availability = if (sensor.isOnline) "Online" else "Offline"
     val status = when (sensor.supportStatus) {
@@ -95,9 +95,20 @@ private fun SensorCard(sensor: MergedSensor, onRegister: (MergedSensor) -> Unit,
                 Column { Text(name, style = MaterialTheme.typography.titleMedium); Text(if (sensor.isRegistered) "Registered · $status" else "Unregistered · $status") }
                 IconButton(onClick = { expanded = !expanded }, Modifier.semantics { contentDescription = if (expanded) "Collapse $name" else "Expand $name" }) { Text(if (expanded) "⌃" else "⌄") }
             }
-            Column { reading.temperatureCelsius?.let { value -> Text("Temperature: %.2f °C".format(value)) }; reading.humidityPercent?.let { value -> Text("Humidity: %.2f %%".format(value)) }; reading.pressureHectopascals?.let { value -> Text("Pressure: %.2f hPa".format(value)) }; reading.carbonDioxidePpm?.let { value -> Text("CO₂: $value ppm") }; reading.batteryPercent?.let { value -> Text("Battery: $value%") } }
-            if (expanded) Text("Address: ${sensor.address.value}\nRSSI: ${sensor.observation?.rssi ?: "—"}\nLast seen: ${formatLastSeen(sensor.observation?.receptionEpochMillis ?: sensor.registeredSensor?.lastSeenEpochMillis)}\nBTHome version: ${sensor.observation?.deviceInformation?.version ?: sensor.registeredSensor?.lastBTHomeVersion ?: "—"}\nEncrypted: ${sensor.observation?.deviceInformation?.encrypted ?: sensor.registeredSensor?.lastEncrypted ?: "—"}\nTrigger based: ${sensor.observation?.deviceInformation?.triggerBased ?: sensor.registeredSensor?.lastTriggerBased ?: "—"}\nPacket ID: ${sensor.observation?.metadata?.packetId ?: sensor.latestReading?.packetId ?: "—"}\nDevice type: ${sensor.observation?.metadata?.deviceType ?: sensor.registeredSensor?.deviceType ?: "—"}\nFirmware: ${sensor.observation?.metadata?.firmwareVersion ?: sensor.registeredSensor?.firmwareVersion ?: "—"}\nSupported: ${(if (sensor.isRegistered) sensor.registeredSensor?.supportedMeasurementTypes else measurementTypes(sensor.observation?.measurements ?: reading))?.joinToString() ?: "—"}\nDiagnostic: ${sensor.registeredSensor?.protocolDiagnostic ?: diagnosticLabel(sensor.observation?.parseResult)}")
+            if (measurements == null) Text("No live reading available") else SensorMeasurements(measurements)
+            if (expanded) Text("Address: ${sensor.address.value}\nRSSI: ${sensor.observation?.rssi ?: "—"}\nLast seen: ${formatLastSeen(sensor.observation?.receptionEpochMillis ?: sensor.registeredSensor?.lastSeenEpochMillis)}\nBTHome version: ${sensor.observation?.deviceInformation?.version ?: sensor.registeredSensor?.lastBTHomeVersion ?: "—"}\nEncrypted: ${sensor.observation?.deviceInformation?.encrypted ?: sensor.registeredSensor?.lastEncrypted ?: "—"}\nTrigger based: ${sensor.observation?.deviceInformation?.triggerBased ?: sensor.registeredSensor?.lastTriggerBased ?: "—"}\nPacket ID: ${sensor.observation?.metadata?.packetId ?: "—"}\nDevice type: ${sensor.observation?.metadata?.deviceType ?: sensor.registeredSensor?.deviceType ?: "—"}\nFirmware: ${sensor.observation?.metadata?.firmwareVersion ?: sensor.registeredSensor?.firmwareVersion ?: "—"}\nSupported: ${(if (sensor.isRegistered) sensor.registeredSensor?.supportedMeasurementTypes else measurements?.let(::measurementTypes))?.joinToString() ?: "—"}\nDiagnostic: ${sensor.registeredSensor?.protocolDiagnostic ?: diagnosticLabel(sensor.observation?.parseResult)}")
         }
+    }
+}
+
+@Composable
+private fun SensorMeasurements(values: io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements) {
+    Column {
+        values.temperatureCelsius?.let { value -> Text("Temperature: %.2f °C".format(value)) }
+        values.humidityPercent?.let { value -> Text("Humidity: %.2f %%".format(value)) }
+        values.pressureHectopascals?.let { value -> Text("Pressure: %.2f hPa".format(value)) }
+        values.carbonDioxidePpm?.let { value -> Text("CO₂: $value ppm") }
+        values.batteryPercent?.let { value -> Text("Battery: $value%") }
     }
 }
 

@@ -193,10 +193,8 @@ private fun SettingsRoute(
     }
     SettingsScreen(
         state = state,
-        intervals = SettingsViewModel.intervals,
         retentions = SettingsViewModel.retentions,
         onBack = onBack,
-        onInterval = { viewModel.edit(interval = it) },
         onRetention = { viewModel.edit(retention = it) },
         onSave = viewModel::save,
     )

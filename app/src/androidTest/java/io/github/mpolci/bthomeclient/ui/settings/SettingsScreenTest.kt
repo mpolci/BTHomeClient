@@ -18,15 +18,12 @@ class SettingsScreenTest {
         val state = mutableStateOf(SettingsState(current = AppSettings(), pending = AppSettings()))
         var saves = 0
         compose.setContent {
-            SettingsScreen(state.value, SettingsViewModel.intervals, SettingsViewModel.retentions, {}, { state.value = state.value.copy(pending = state.value.pending.copy(minimumPersistenceIntervalMillis = it), edited = true) }, { state.value = state.value.copy(pending = state.value.pending.copy(retentionDurationMillis = it), edited = true) }, { saves++ })
+            SettingsScreen(state.value, SettingsViewModel.retentions, {}, { state.value = state.value.copy(pending = state.value.pending.copy(retentionDurationMillis = it), edited = true) }, { saves++ })
         }
-        compose.onNodeWithText("These global settings affect persistence for registered sensors only.").assertIsDisplayed()
-        listOf("1 minute", "5 minutes", "15 minutes", "30 minutes", "60 minutes", "Unlimited", "7 days", "30 days", "90 days", "365 days").forEach { compose.onNodeWithText(it).assertIsDisplayed() }
-        compose.onNodeWithTag("settings-interval-900000").assertIsSelected()
+        compose.onNodeWithText("This setting applies to downloaded history for registered sensors.").assertIsDisplayed()
+        listOf("Unlimited", "7 days", "30 days", "90 days", "365 days").forEach { compose.onNodeWithText(it).assertIsDisplayed() }
         compose.onNodeWithTag("settings-retention-unlimited").assertIsSelected()
-        compose.onNodeWithTag("settings-interval-300000").performClick()
         compose.onNodeWithTag("settings-retention-2592000000").performClick()
-        compose.onNodeWithTag("settings-interval-300000").assertIsSelected()
         compose.onNodeWithTag("settings-retention-2592000000").assertIsSelected()
         compose.onNodeWithTag("settings-save").performClick(); assertEquals(1, saves)
         compose.runOnIdle { state.value = state.value.copy(error = "Unable to save settings.", isSaving = true) }

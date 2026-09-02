@@ -1,9 +1,7 @@
 package io.github.mpolci.bthomeclient.data.local
 
-import io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements
 import io.github.mpolci.bthomeclient.domain.model.RegisteredSensor
 import io.github.mpolci.bthomeclient.domain.model.SensorAddress
-import io.github.mpolci.bthomeclient.domain.model.SensorReading
 
 fun RegisteredSensorEntity.toDomain() = RegisteredSensor(
     address = SensorAddress.require(address),
@@ -41,30 +39,4 @@ fun RegisteredSensor.toEntity() = RegisteredSensorEntity(
     protocolDiagnostic = protocolDiagnostic,
     lastSupportStatus = lastSupportStatus?.name,
     supportedMeasurementTypes = supportedMeasurementTypes.map { it.name }.sorted().joinToString(",").ifEmpty { null },
-)
-
-fun SensorReadingEntity.toDomain() = SensorReading(
-    address = SensorAddress.require(sensorAddress),
-    receptionEpochMillis = receptionEpochMillis,
-    bthomeTimestampEpochMillis = bthomeTimestampEpochMillis,
-    measurements = BTHomeMeasurements(
-        batteryPercent = batteryPercent,
-        temperatureCelsius = temperatureCelsius,
-        humidityPercent = humidityPercent,
-        pressureHectopascals = pressureHectopascals,
-        carbonDioxidePpm = carbonDioxidePpm,
-    ),
-    packetId = packetId,
-)
-
-fun SensorReading.toEntity() = SensorReadingEntity(
-    sensorAddress = address.value,
-    receptionEpochMillis = receptionEpochMillis,
-    bthomeTimestampEpochMillis = bthomeTimestampEpochMillis,
-    temperatureCelsius = measurements.temperatureCelsius,
-    humidityPercent = measurements.humidityPercent,
-    pressureHectopascals = measurements.pressureHectopascals,
-    carbonDioxidePpm = measurements.carbonDioxidePpm,
-    batteryPercent = measurements.batteryPercent,
-    packetId = packetId,
 )

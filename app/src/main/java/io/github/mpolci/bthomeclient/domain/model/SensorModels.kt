@@ -1,7 +1,6 @@
 package io.github.mpolci.bthomeclient.domain.model
 
 import io.github.mpolci.bthomeclient.bthome.BTHomeDeviceInformation
-import io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements
 import io.github.mpolci.bthomeclient.bthome.BTHomeParseResult
 import io.github.mpolci.bthomeclient.bthome.BTHomeProtocolMetadata
 
@@ -22,14 +21,6 @@ data class RegisteredSensor(
     val protocolDiagnostic: String?,
     val lastSupportStatus: SensorSupportStatus?,
     val supportedMeasurementTypes: Set<MeasurementType>,
-)
-
-data class SensorReading(
-    val address: SensorAddress,
-    val receptionEpochMillis: Long,
-    val bthomeTimestampEpochMillis: Long?,
-    val measurements: BTHomeMeasurements,
-    val packetId: Int?,
 )
 
 data class ScanObservation(
@@ -66,21 +57,14 @@ data class MergedSensor(
     val observation: ScanObservation?,
     val isOnline: Boolean,
     val supportStatus: SensorSupportStatus,
-    val latestReading: SensorReading?,
 ) {
     val isRegistered: Boolean get() = registeredSensor != null
 }
 
 data class AppSettings(
-    val minimumPersistenceIntervalMillis: Long = DEFAULT_MINIMUM_PERSISTENCE_INTERVAL_MILLIS,
     val retentionDurationMillis: Long? = null,
 ) {
     init {
-        require(minimumPersistenceIntervalMillis > 0)
         require(retentionDurationMillis == null || retentionDurationMillis > 0)
-    }
-
-    companion object {
-        const val DEFAULT_MINIMUM_PERSISTENCE_INTERVAL_MILLIS = 15 * 60 * 1_000L
     }
 }

@@ -25,7 +25,6 @@ class SettingsViewModel(
     private val manager: SensorManager,
 ) : ViewModel() {
     companion object {
-        val intervals = listOf(1L, 5L, 15L, 30L, 60L).map { it * 60_000 }
         val retentions = listOf<Long?>(
             null,
             7L * 86_400_000,
@@ -52,16 +51,13 @@ class SettingsViewModel(
         }
     }
 
-    fun edit(
-        interval: Long = state.value.pending.minimumPersistenceIntervalMillis,
-        retention: Long? = state.value.pending.retentionDurationMillis,
-    ) {
-        if (interval !in intervals || retention !in retentions) {
+    fun edit(retention: Long? = state.value.pending.retentionDurationMillis) {
+        if (retention !in retentions) {
             mutableState.update { it.copy(error = "Invalid settings selection.") }
             return
         }
         mutableState.update {
-            it.copy(pending = AppSettings(interval, retention), edited = true, error = null)
+            it.copy(pending = AppSettings(retention), edited = true, error = null)
         }
     }
 

@@ -29,8 +29,8 @@ class MainScreenExpansionTest {
         val parser = BTHomeV2Parser()
         val unregisteredAddress = SensorAddress.require("AA:BB:CC:DD:EE:B1")
         val registeredAddress = SensorAddress.require("AA:BB:CC:DD:EE:B2")
-        val unregistered = MergedSensor(unregisteredAddress, null, ScanObservation(unregisteredAddress, "Guest", -50, 1, parser.parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported, null)
-        val registered = MergedSensor(registeredAddress, RegisteredSensor(registeredAddress, "Known", null, null, 1, null, 1, -50, 2, false, false, null, null, null, SensorSupportStatus.Supported, emptySet()), null, true, SensorSupportStatus.Supported, null)
+        val unregistered = MergedSensor(unregisteredAddress, null, ScanObservation(unregisteredAddress, "Guest", -50, 1, parser.parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported)
+        val registered = MergedSensor(registeredAddress, RegisteredSensor(registeredAddress, "Known", null, null, 1, null, 1, -50, 2, false, false, null, null, null, SensorSupportStatus.Supported, emptySet()), null, true, SensorSupportStatus.Supported)
         var registeredClicks = 0
         var detailsClicks = 0
         compose.setContent { MainScreen(MainScanState(sensors = listOf(unregistered, registered)), {}, {}, {}, {}, {}, { registeredClicks++ }, { detailsClicks++ }) }

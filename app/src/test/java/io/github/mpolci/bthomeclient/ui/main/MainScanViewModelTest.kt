@@ -63,7 +63,7 @@ class MainScanViewModelTest {
         runCurrent()
         assertEquals(listOf(first, second), feed.observed)
         feed.sensorsMutable.value = listOf(
-            io.github.mpolci.bthomeclient.domain.model.MergedSensor(first.address, null, null, false, io.github.mpolci.bthomeclient.domain.model.SensorSupportStatus.Supported, null),
+            io.github.mpolci.bthomeclient.domain.model.MergedSensor(first.address, null, null, false, io.github.mpolci.bthomeclient.domain.model.SensorSupportStatus.Supported),
         )
         runCurrent()
         assertEquals(listOf(first.address), viewModel.state.value.sensors.map { it.address })

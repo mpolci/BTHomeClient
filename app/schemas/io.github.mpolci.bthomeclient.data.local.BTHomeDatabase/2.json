@@ -1,0 +1,305 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "8c925439964a48f14195aa14c9e785c3",
+    "entities": [
+      {
+        "tableName": "registered_sensors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`address` TEXT NOT NULL, `displayName` TEXT NOT NULL, `room` TEXT, `imageUri` TEXT, `registrationOrder` INTEGER NOT NULL, `advertisedName` TEXT, `lastSeenEpochMillis` INTEGER, `lastRssi` INTEGER, `lastBTHomeVersion` INTEGER, `lastEncrypted` INTEGER, `lastTriggerBased` INTEGER, `deviceType` INTEGER, `firmwareVersion` TEXT, `protocolDiagnostic` TEXT, `lastSupportStatus` TEXT, `supportedMeasurementTypes` TEXT, PRIMARY KEY(`address`))",
+        "fields": [
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "room",
+            "columnName": "room",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageUri",
+            "columnName": "imageUri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "registrationOrder",
+            "columnName": "registrationOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "advertisedName",
+            "columnName": "advertisedName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastSeenEpochMillis",
+            "columnName": "lastSeenEpochMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastRssi",
+            "columnName": "lastRssi",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastBTHomeVersion",
+            "columnName": "lastBTHomeVersion",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastEncrypted",
+            "columnName": "lastEncrypted",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastTriggerBased",
+            "columnName": "lastTriggerBased",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "deviceType",
+            "columnName": "deviceType",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "firmwareVersion",
+            "columnName": "firmwareVersion",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "protocolDiagnostic",
+            "columnName": "protocolDiagnostic",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastSupportStatus",
+            "columnName": "lastSupportStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "supportedMeasurementTypes",
+            "columnName": "supportedMeasurementTypes",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "address"
+          ]
+        }
+      },
+      {
+        "tableName": "downloaded_history_samples",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sensorAddress` TEXT NOT NULL, `acquisitionSequence` INTEGER NOT NULL, `sourceFormatVersion` INTEGER NOT NULL, `sourceGeneration` INTEGER NOT NULL, `sourceSlot` INTEGER NOT NULL, `rawPosition` BLOB NOT NULL, `recordedEpochMillis` INTEGER, `timeQuality` TEXT NOT NULL, `temperatureCelsius` REAL NOT NULL, `humidityPercent` INTEGER NOT NULL, `pressureHectopascals` REAL NOT NULL, `batteryPercent` INTEGER NOT NULL, FOREIGN KEY(`sensorAddress`) REFERENCES `registered_sensors`(`address`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensorAddress",
+            "columnName": "sensorAddress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "acquisitionSequence",
+            "columnName": "acquisitionSequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceFormatVersion",
+            "columnName": "sourceFormatVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceGeneration",
+            "columnName": "sourceGeneration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceSlot",
+            "columnName": "sourceSlot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rawPosition",
+            "columnName": "rawPosition",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedEpochMillis",
+            "columnName": "recordedEpochMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "timeQuality",
+            "columnName": "timeQuality",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperatureCelsius",
+            "columnName": "temperatureCelsius",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "humidityPercent",
+            "columnName": "humidityPercent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pressureHectopascals",
+            "columnName": "pressureHectopascals",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "batteryPercent",
+            "columnName": "batteryPercent",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_downloaded_history_samples_sensorAddress_recordedEpochMillis",
+            "unique": false,
+            "columnNames": [
+              "sensorAddress",
+              "recordedEpochMillis"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_downloaded_history_samples_sensorAddress_recordedEpochMillis` ON `${TABLE_NAME}` (`sensorAddress`, `recordedEpochMillis`)"
+          },
+          {
+            "name": "index_downloaded_history_samples_sensorAddress_sourceFormatVersion_sourceGeneration_sourceSlot",
+            "unique": false,
+            "columnNames": [
+              "sensorAddress",
+              "sourceFormatVersion",
+              "sourceGeneration",
+              "sourceSlot"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_downloaded_history_samples_sensorAddress_sourceFormatVersion_sourceGeneration_sourceSlot` ON `${TABLE_NAME}` (`sensorAddress`, `sourceFormatVersion`, `sourceGeneration`, `sourceSlot`)"
+          },
+          {
+            "name": "index_downloaded_history_samples_sensorAddress_acquisitionSequence",
+            "unique": false,
+            "columnNames": [
+              "sensorAddress",
+              "acquisitionSequence"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_downloaded_history_samples_sensorAddress_acquisitionSequence` ON `${TABLE_NAME}` (`sensorAddress`, `acquisitionSequence`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "registered_sensors",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sensorAddress"
+            ],
+            "referencedColumns": [
+              "address"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "history_sync_states",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sensorAddress` TEXT NOT NULL, `cursor` BLOB NOT NULL, `nextAcquisitionSequence` INTEGER NOT NULL, `lastSuccessfulDownloadEpochMillis` INTEGER NOT NULL, `syncPending` INTEGER NOT NULL, `historyTruncated` INTEGER NOT NULL, PRIMARY KEY(`sensorAddress`), FOREIGN KEY(`sensorAddress`) REFERENCES `registered_sensors`(`address`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sensorAddress",
+            "columnName": "sensorAddress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cursor",
+            "columnName": "cursor",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextAcquisitionSequence",
+            "columnName": "nextAcquisitionSequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSuccessfulDownloadEpochMillis",
+            "columnName": "lastSuccessfulDownloadEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncPending",
+            "columnName": "syncPending",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "historyTruncated",
+            "columnName": "historyTruncated",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "sensorAddress"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "registered_sensors",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sensorAddress"
+            ],
+            "referencedColumns": [
+              "address"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8c925439964a48f14195aa14c9e785c3')"
+    ]
+  }
+}

@@ -7,7 +7,7 @@ Local Android monitoring for unencrypted BTHome v2 environmental BLE advertiseme
 - Dashboard with registered sensors first and live unregistered sensors after them.
 - Registration with optional Android Photo Picker image.
 - Detail editing/removal with live protocol diagnostics and a history entry point.
-- Global persistence/retention settings.
+- Global downloaded-history retention setting.
 - Accessible history placeholder while chart visualization is deferred.
 
 ## Setup
@@ -27,7 +27,7 @@ Only `BLUETOOTH_SCAN` (`neverForLocation`) and `BLUETOOTH_CONNECT` are declared.
 
 Nearby Devices is requested only after the user chooses Allow. Bluetooth enable and app-settings actions are also user initiated.
 
-Registered sensors use normalized BLE addresses as identity; address randomization can make a device appear new. Room v1 stores registered metadata and composite readings. DataStore stores global settings. The default sampling interval is 15 minutes; choices are 1/5/15/30/60 minutes. Retention is unlimited by default, with 7/30/90/365 day options. Unregistered observations are memory-only.
+Registered sensors use normalized BLE addresses as identity; address randomization can make a device appear new. Room v2 stores registered metadata and downloaded-history state; live BTHome advertisements remain memory-only. DataStore stores the downloaded-history retention preference, which is unlimited by default and offers 7/30/90/365-day choices for dated samples.
 
 The app supports BTHome service UUID `0xFCD2`, v2, unencrypted packets. Temperature, humidity, pressure, CO2, battery, packet ID, timestamp, device type, and firmware are decoded with typed malformed/unsupported diagnostics. See [architecture](docs/architecture.md), [protocol support](docs/bthome-support.md), and [testing](docs/testing.md).
 

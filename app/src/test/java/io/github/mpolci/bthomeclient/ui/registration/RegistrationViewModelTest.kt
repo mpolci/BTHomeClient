@@ -88,7 +88,7 @@ class RegistrationViewModelTest {
         assertEquals(false, viewModel.state.value.isSaving)
     }
 
-    private fun sensor(address: SensorAddress, name: String) = MergedSensor(address, null, ScanObservation(address, name, -50, 1, BTHomeV2Parser().parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported, null)
+    private fun sensor(address: SensorAddress, name: String) = MergedSensor(address, null, ScanObservation(address, name, -50, 1, BTHomeV2Parser().parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported)
 
     private class FakeManager : SensorManager {
         val sensorState = MutableStateFlow<MergedSensor?>(null)

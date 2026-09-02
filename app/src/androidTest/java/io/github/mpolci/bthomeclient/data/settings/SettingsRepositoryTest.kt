@@ -1,6 +1,8 @@
 package io.github.mpolci.bthomeclient.data.settings
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.mpolci.bthomeclient.domain.model.AppSettings
@@ -21,17 +23,16 @@ class SettingsRepositoryTest {
             val context = ApplicationProvider.getApplicationContext<android.content.Context>()
             val scope = CoroutineScope(SupervisorJob())
             val file = context.cacheDir.resolve("settings-${UUID.randomUUID()}.preferences_pb")
-            val repository = SettingsRepository(
-                PreferenceDataStoreFactory.create(scope = scope, produceFile = { file }),
-            )
-            val expected = AppSettings(
-                minimumPersistenceIntervalMillis = 60_000,
-                retentionDurationMillis = 604_800_000,
-            )
+            val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+            val repository = SettingsRepository(dataStore)
+            val expected = AppSettings(retentionDurationMillis = 604_800_000)
 
             try {
+                val legacyKey = longPreferencesKey("minimum_persistence_interval_millis")
+                dataStore.edit { it[legacyKey] = 60_000 }
                 repository.save(expected)
                 assertEquals(expected, repository.settings.first())
+                assertEquals(null, dataStore.data.first()[legacyKey])
             } finally {
                 scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
                 file.delete()

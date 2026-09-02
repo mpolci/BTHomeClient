@@ -2,7 +2,6 @@ package io.github.mpolci.bthomeclient.data.settings
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.edit
 import io.github.mpolci.bthomeclient.domain.model.AppSettings
 import kotlinx.coroutines.flow.Flow
@@ -15,16 +14,12 @@ interface SettingsStore {
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) : SettingsStore {
     override val settings: Flow<AppSettings> = dataStore.data.map { preferences ->
-        AppSettings(
-            minimumPersistenceIntervalMillis = preferences[MINIMUM_PERSISTENCE_INTERVAL]
-                ?: AppSettings.DEFAULT_MINIMUM_PERSISTENCE_INTERVAL_MILLIS,
-            retentionDurationMillis = preferences[RETENTION_DURATION],
-        )
+        AppSettings(retentionDurationMillis = preferences[RETENTION_DURATION])
     }
 
     override suspend fun save(settings: AppSettings) {
         dataStore.edit { preferences ->
-            preferences[MINIMUM_PERSISTENCE_INTERVAL] = settings.minimumPersistenceIntervalMillis
+            preferences.remove(LEGACY_MINIMUM_PERSISTENCE_INTERVAL)
             if (settings.retentionDurationMillis == null) {
                 preferences.remove(RETENTION_DURATION)
             } else {
@@ -34,7 +29,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) : Settin
     }
 
     private companion object {
-        val MINIMUM_PERSISTENCE_INTERVAL = longPreferencesKey("minimum_persistence_interval_millis")
-        val RETENTION_DURATION = longPreferencesKey("retention_duration_millis")
+        val LEGACY_MINIMUM_PERSISTENCE_INTERVAL = androidx.datastore.preferences.core.longPreferencesKey("minimum_persistence_interval_millis")
+        val RETENTION_DURATION = androidx.datastore.preferences.core.longPreferencesKey("retention_duration_millis")
     }
 }

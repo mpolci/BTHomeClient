@@ -24,9 +24,7 @@ class DetailScreenTest {
         compose.onNodeWithText("Registered sensor not found.").assertIsDisplayed()
         compose.runOnIdle { state.value = contentState() }
         compose.onNodeWithText("Registered · Offline · Unsupported").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Temperature: 21", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Humidity: 55", substring = true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Battery: 80%").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Address: AA:BB:CC:DD:EE:99", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Diagnostic: None", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("detail-name").performScrollTo().performTextInput(" edited")
@@ -52,7 +50,6 @@ class DetailScreenTest {
         val address = SensorAddress.require("AA:BB:CC:DD:EE:99")
         val registered = RegisteredSensor(address, "Stored", null, null, 1, null, 0, null, 2, false, false, null, null, "NoSupportedMeasurements", SensorSupportStatus.Unsupported, emptySet())
         val observation = ScanObservation(address, "Live", -50, 1, BTHomeV2Parser().parse(0xFCD2, byteArrayOf(0x40, 0x03, 0x7C, 0x15)))
-        val latest = SensorReading(address, 0, null, BTHomeMeasurements(temperatureCelsius = 21.5, batteryPercent = 80), null)
-        return DetailState(sensor = MergedSensor(address, registered, observation, false, SensorSupportStatus.Unsupported, latest), loading = false, notFound = false, displayName = "Stored")
+        return DetailState(sensor = MergedSensor(address, registered, observation, false, SensorSupportStatus.Unsupported), loading = false, notFound = false, displayName = "Stored")
     }
 }

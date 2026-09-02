@@ -1,17 +1,12 @@
 package io.github.mpolci.bthomeclient.ui.main
 
 import io.github.mpolci.bthomeclient.bthome.BTHomeParseResult
-import io.github.mpolci.bthomeclient.domain.model.MeasurementType
 import io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements
+import io.github.mpolci.bthomeclient.domain.model.MeasurementType
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-fun mergedMeasurements(live: BTHomeMeasurements?, stored: BTHomeMeasurements?) = BTHomeMeasurements(
-    live?.batteryPercent ?: stored?.batteryPercent, live?.temperatureCelsius ?: stored?.temperatureCelsius,
-    live?.humidityPercent ?: stored?.humidityPercent, live?.pressureHectopascals ?: stored?.pressureHectopascals,
-    live?.carbonDioxidePpm ?: stored?.carbonDioxidePpm,
-)
 fun formatLastSeen(epochMillis: Long?, zoneId: ZoneId = ZoneId.systemDefault()): String = epochMillis?.let { DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(zoneId).format(Instant.ofEpochMilli(it)) } ?: "—"
 fun diagnosticLabel(result: BTHomeParseResult?): String = when (result) {
     is BTHomeParseResult.Decoded -> result.advertisement.diagnostics.joinToString { it.toString() }.ifBlank { "None" }

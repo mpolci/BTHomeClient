@@ -22,12 +22,14 @@ private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
 class AppContainer(context: Context) {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val database = Room.databaseBuilder(context, BTHomeDatabase::class.java, "bthome-client.db").build()
+    private val database = Room.databaseBuilder(context, BTHomeDatabase::class.java, "bthome-client.db")
+        .addMigrations(BTHomeDatabase.MIGRATION_1_2)
+        .build()
     private val settingsRepository = SettingsRepository(context.settingsDataStore)
 
     val sensorCoordinator = SensorCoordinator(
         registeredSensorDao = database.registeredSensorDao(),
-        sensorReadingDao = database.sensorReadingDao(),
+        downloadedHistoryDao = database.downloadedHistoryDao(),
         settingsRepository = settingsRepository,
         clock = SystemClock,
         applicationScope = applicationScope,

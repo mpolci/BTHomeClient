@@ -1,6 +1,5 @@
 package io.github.mpolci.bthomeclient.ui.main
 
-import io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements
 import java.time.ZoneId
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -23,14 +22,7 @@ class MainFormattersTest {
     }
 
     @Test
-    fun `merges sparse live values and formats timestamps deterministically`() {
-        val merged = mergedMeasurements(
-            live = BTHomeMeasurements(humidityPercent = 55.0),
-            stored = BTHomeMeasurements(temperatureCelsius = 21.5, humidityPercent = 44.0, batteryPercent = 87),
-        )
-        assertEquals(21.5, merged.temperatureCelsius!!, 0.0)
-        assertEquals(55.0, merged.humidityPercent!!, 0.0)
-        assertEquals(87, merged.batteryPercent)
+    fun `formats timestamps deterministically`() {
         assertEquals("1970-01-01 00:00:00", formatLastSeen(0, ZoneId.of("UTC")))
         assertEquals("—", formatLastSeen(null, ZoneId.of("UTC")))
     }

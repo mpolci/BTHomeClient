@@ -16,7 +16,6 @@ import io.github.mpolci.bthomeclient.domain.model.SensorSupportStatus
 import io.github.mpolci.bthomeclient.ui.common.SensorImage
 import io.github.mpolci.bthomeclient.ui.main.diagnosticLabel
 import io.github.mpolci.bthomeclient.ui.main.formatLastSeen
-import io.github.mpolci.bthomeclient.ui.main.mergedMeasurements
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,11 +59,11 @@ private fun DetailContent(
         SensorSupportStatus.Unsupported -> "$availability · Unsupported"
         SensorSupportStatus.Malformed -> "$availability · Malformed"
     }
-    val values = mergedMeasurements(sensor.observation?.measurements, sensor.latestReading?.measurements)
+    val values = sensor.observation?.measurements
     Column(modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(state.displayName, style = MaterialTheme.typography.headlineSmall)
         Text("Registered · $status")
-        SensorMeasurements(values)
+        if (values == null) Text("No live reading available") else SensorMeasurements(values)
         SensorDiagnostics(state)
         SensorImage(state.imageUri)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -115,5 +114,5 @@ private fun DetailContent(
     val observation = sensor.observation
     val registered = sensor.registeredSensor
     val diagnostic = observation?.let { diagnosticLabel(it.parseResult) } ?: registered?.protocolDiagnostic ?: "—"
-    Text("Address: ${sensor.address.value}\nRSSI: ${observation?.rssi ?: "—"}\nLast seen: ${formatLastSeen(observation?.receptionEpochMillis ?: registered?.lastSeenEpochMillis)}\nBTHome version: ${observation?.deviceInformation?.version ?: registered?.lastBTHomeVersion ?: "—"}\nEncrypted: ${observation?.deviceInformation?.encrypted ?: registered?.lastEncrypted ?: "—"}\nTrigger based: ${observation?.deviceInformation?.triggerBased ?: registered?.lastTriggerBased ?: "—"}\nPacket ID: ${observation?.metadata?.packetId ?: sensor.latestReading?.packetId ?: "—"}\nDevice type: ${observation?.metadata?.deviceType ?: registered?.deviceType ?: "—"}\nFirmware: ${observation?.metadata?.firmwareVersion ?: registered?.firmwareVersion ?: "—"}\nSupported: ${registered?.supportedMeasurementTypes?.joinToString() ?: "—"}\nDiagnostic: $diagnostic")
+    Text("Address: ${sensor.address.value}\nRSSI: ${observation?.rssi ?: "—"}\nLast seen: ${formatLastSeen(observation?.receptionEpochMillis ?: registered?.lastSeenEpochMillis)}\nBTHome version: ${observation?.deviceInformation?.version ?: registered?.lastBTHomeVersion ?: "—"}\nEncrypted: ${observation?.deviceInformation?.encrypted ?: registered?.lastEncrypted ?: "—"}\nTrigger based: ${observation?.deviceInformation?.triggerBased ?: registered?.lastTriggerBased ?: "—"}\nPacket ID: ${observation?.metadata?.packetId ?: "—"}\nDevice type: ${observation?.metadata?.deviceType ?: registered?.deviceType ?: "—"}\nFirmware: ${observation?.metadata?.firmwareVersion ?: registered?.firmwareVersion ?: "—"}\nSupported: ${registered?.supportedMeasurementTypes?.joinToString() ?: "—"}\nDiagnostic: $diagnostic")
 }

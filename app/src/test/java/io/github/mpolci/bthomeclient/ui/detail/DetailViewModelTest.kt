@@ -109,7 +109,7 @@ class DetailViewModelTest {
     }
     private fun item(address: SensorAddress, name: String, live: String): MergedSensor {
         val registered = RegisteredSensor(address, name, "Stored room", "stored-image", 1, null, 1, -1, 2, false, false, 1, "1.0", null, SensorSupportStatus.Supported, emptySet())
-        return MergedSensor(address, registered, ScanObservation(address, live, -1, 2, BTHomeV2Parser().parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported, null)
+        return MergedSensor(address, registered, ScanObservation(address, live, -1, 2, BTHomeV2Parser().parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported)
     }
     private class Manager : SensorManager {
         val flow = MutableStateFlow<MergedSensor?>(null)

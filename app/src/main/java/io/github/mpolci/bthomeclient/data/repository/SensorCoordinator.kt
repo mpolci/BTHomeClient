@@ -2,7 +2,7 @@ package io.github.mpolci.bthomeclient.data.repository
 
 import io.github.mpolci.bthomeclient.bthome.BTHomeParseResult
 import io.github.mpolci.bthomeclient.data.local.RegisteredSensorDao
-import io.github.mpolci.bthomeclient.data.local.SensorReadingDao
+import io.github.mpolci.bthomeclient.data.local.DownloadedHistoryDao
 import io.github.mpolci.bthomeclient.data.local.toDomain
 import io.github.mpolci.bthomeclient.data.local.toEntity
 import io.github.mpolci.bthomeclient.data.settings.SettingsStore
@@ -12,7 +12,6 @@ import io.github.mpolci.bthomeclient.domain.model.MergedSensor
 import io.github.mpolci.bthomeclient.domain.model.RegisteredSensor
 import io.github.mpolci.bthomeclient.domain.model.ScanObservation
 import io.github.mpolci.bthomeclient.domain.model.SensorAddress
-import io.github.mpolci.bthomeclient.domain.model.SensorReading
 import io.github.mpolci.bthomeclient.domain.model.SensorSupportStatus
 import io.github.mpolci.bthomeclient.util.Clock
 import kotlinx.coroutines.CoroutineScope
@@ -21,10 +20,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -39,13 +36,11 @@ interface SensorManager : SensorFeed {
     suspend fun updateEditableMetadata(address: SensorAddress, displayName: String, room: String?, imageUri: String?)
     suspend fun deleteRegistration(address: SensorAddress)
     suspend fun saveSettings(settings: AppSettings)
-    fun observeHistory(address: SensorAddress): Flow<List<SensorReading>> = emptyFlow()
-    fun observeHistoryInRange(address: SensorAddress, fromEpochMillis: Long, toEpochMillis: Long): Flow<List<SensorReading>> = emptyFlow()
 }
 
 class SensorCoordinator(
     private val registeredSensorDao: RegisteredSensorDao,
-    private val sensorReadingDao: SensorReadingDao,
+    private val downloadedHistoryDao: DownloadedHistoryDao,
     private val settingsRepository: SettingsStore,
     private val clock: Clock,
     applicationScope: CoroutineScope,
@@ -58,9 +53,8 @@ class SensorCoordinator(
         registeredSensorDao.observeAll(),
         observations,
         nowEpochMillis,
-        sensorReadingDao.observeLatestForAllSensors(),
-    ) { registered, currentObservations, now, readings ->
-        merge(registered.map { it.toDomain() }, currentObservations, now, readings.associateBy { it.sensorAddress })
+    ) { registered, currentObservations, now ->
+        merge(registered.map { it.toDomain() }, currentObservations, now)
     }.stateIn(applicationScope, SharingStarted.Eagerly, emptyList())
 
     init {
@@ -99,23 +93,6 @@ class SensorCoordinator(
             supportedMeasurementTypes = (existing.supportedMeasurementTypes?.split(',')?.filter { it.isNotBlank() }.orEmpty() + advertisement.measurementTypes().map { it.name }).distinct().sorted().joinToString(",").ifEmpty { null },
         )
         registeredSensorDao.update(updated)
-
-        val decoded = advertisement.parseResult as? BTHomeParseResult.Decoded ?: return
-        val reading = SensorReading(
-            address = advertisement.address,
-            receptionEpochMillis = advertisement.receptionEpochMillis,
-            bthomeTimestampEpochMillis = decoded.advertisement.metadata.timestampEpochMillis,
-            measurements = decoded.advertisement.measurements,
-            packetId = decoded.advertisement.metadata.packetId,
-        )
-        val settings = settingsRepository.settings.first()
-        val latest = sensorReadingDao.latest(advertisement.address.value)
-        if (latest == null || reading.receptionEpochMillis - latest.receptionEpochMillis >= settings.minimumPersistenceIntervalMillis) {
-            sensorReadingDao.insertAndApplyRetention(
-                reading = reading.toEntity(),
-                beforeEpochMillis = settings.retentionDurationMillis?.let { clock.nowEpochMillis() - it },
-            )
-        }
     }
 
     override suspend fun register(
@@ -146,12 +123,6 @@ class SensorCoordinator(
                 supportedMeasurementTypes = observation?.measurementTypes()?.toSet().orEmpty(),
             ).toEntity(),
         )
-        val decoded = observation?.parseResult as? BTHomeParseResult.Decoded ?: return
-        val settings = settingsRepository.settings.first()
-        sensorReadingDao.insertAndApplyRetention(
-            SensorReading(address, observation.receptionEpochMillis, decoded.advertisement.metadata.timestampEpochMillis, decoded.advertisement.measurements, decoded.advertisement.metadata.packetId).toEntity(),
-            settings.retentionDurationMillis?.let { clock.nowEpochMillis() - it },
-        )
     }
 
     override suspend fun updateEditableMetadata(address: SensorAddress, displayName: String, room: String?, imageUri: String?) = mutationMutex.withLock {
@@ -168,19 +139,15 @@ class SensorCoordinator(
 
     override val settings: Flow<AppSettings> get() = settingsRepository.settings
     override fun sensor(address: SensorAddress): Flow<MergedSensor?> = sensors.map { items -> items.firstOrNull { it.address == address } }
-    override fun observeHistory(address: SensorAddress): Flow<List<SensorReading>> = sensorReadingDao.observeHistory(address.value).map { it.map { reading -> reading.toDomain() } }
-    override fun observeHistoryInRange(address: SensorAddress, fromEpochMillis: Long, toEpochMillis: Long): Flow<List<SensorReading>> = sensorReadingDao.observeHistoryInRange(address.value, fromEpochMillis, toEpochMillis).map { it.map { reading -> reading.toDomain() } }
-
     override suspend fun saveSettings(settings: AppSettings): Unit = mutationMutex.withLock {
         settingsRepository.save(settings)
-        settings.retentionDurationMillis?.let { sensorReadingDao.deleteOlderThan(clock.nowEpochMillis() - it) }
+        settings.retentionDurationMillis?.let { downloadedHistoryDao.deleteDatedSamplesOlderThan(clock.nowEpochMillis() - it) }
     }
 
     private fun merge(
         registered: List<RegisteredSensor>,
         currentObservations: Map<SensorAddress, ScanObservation>,
         now: Long,
-        latestReadings: Map<String, io.github.mpolci.bthomeclient.data.local.SensorReadingEntity>,
     ): List<MergedSensor> {
         val registeredAddresses = registered.mapTo(mutableSetOf()) { it.address }
         val registeredItems = registered.map { sensor ->
@@ -191,7 +158,6 @@ class SensorCoordinator(
                 observation = observation,
                 isOnline = (observation?.receptionEpochMillis ?: sensor.lastSeenEpochMillis ?: Long.MIN_VALUE) > now - ONLINE_WINDOW_MILLIS,
                 supportStatus = observation?.supportStatus() ?: sensor.lastSupportStatus ?: SensorSupportStatus.Supported,
-                latestReading = latestReadings[sensor.address.value]?.toDomain(),
             )
         }
         val unregisteredItems = currentObservations.values
@@ -206,7 +172,6 @@ class SensorCoordinator(
                     observation = observation,
                     isOnline = true,
                     supportStatus = observation.supportStatus(),
-                    latestReading = null,
                 )
             }
             .toList()

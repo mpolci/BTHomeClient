@@ -15,19 +15,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsScreen(
     state: SettingsState,
-    intervals: List<Long>,
     retentions: List<Long?>,
     onBack: () -> Unit,
-    onInterval: (Long) -> Unit,
     onRetention: (Long?) -> Unit,
     onSave: () -> Unit,
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Settings") }, navigationIcon = { IconButton(onClick = onBack) { Text("Back") } }) }) { padding ->
         Column(Modifier.padding(padding).padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("These global settings affect persistence for registered sensors only.")
-            Text("Minimum persistence interval", style = MaterialTheme.typography.titleMedium)
-            intervals.forEach { interval -> ChoiceRow(intervalLabel(interval), state.pending.minimumPersistenceIntervalMillis == interval, { onInterval(interval) }, "settings-interval-$interval") }
-            Text("Reading retention", style = MaterialTheme.typography.titleMedium)
+            Text("This setting applies to downloaded history for registered sensors.")
+            Text("Downloaded history retention", style = MaterialTheme.typography.titleMedium)
             retentions.forEach { retention -> ChoiceRow(retentionLabel(retention), state.pending.retentionDurationMillis == retention, { onRetention(retention) }, "settings-retention-${retention ?: "unlimited"}") }
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().testTag("settings-save")) { if (state.isSaving) CircularProgressIndicator(Modifier.size(20.dp)) else Text("Save") }
@@ -46,9 +42,4 @@ private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit, tag
 private fun retentionLabel(retention: Long?): String = when (retention) {
     null -> "Unlimited"
     else -> "${retention / 86_400_000} days"
-}
-
-private fun intervalLabel(interval: Long): String {
-    val minutes = interval / 60_000
-    return if (minutes == 1L) "1 minute" else "$minutes minutes"
 }

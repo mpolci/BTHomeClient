@@ -36,28 +36,34 @@ interface RegisteredSensorDao {
 }
 
 @Dao
-interface SensorReadingDao {
+interface DownloadedHistoryDao {
+    @Query("SELECT * FROM history_sync_states WHERE sensorAddress = :address")
+    suspend fun syncState(address: String): HistorySyncStateEntity?
+
+    @Query("SELECT COUNT(*) FROM downloaded_history_samples WHERE sensorAddress = :address")
+    fun observeSampleCount(address: String): Flow<Int>
+
+    @Query("SELECT * FROM downloaded_history_samples WHERE sensorAddress = :address ORDER BY acquisitionSequence ASC")
+    fun observeSamples(address: String): Flow<List<DownloadedHistorySampleEntity>>
+
+    @Query("SELECT * FROM downloaded_history_samples WHERE sensorAddress = :address AND recordedEpochMillis BETWEEN :fromEpochMillis AND :toEpochMillis ORDER BY acquisitionSequence ASC")
+    fun observeSamplesInRange(address: String, fromEpochMillis: Long, toEpochMillis: Long): Flow<List<DownloadedHistorySampleEntity>>
+
     @Insert
-    suspend fun insert(reading: SensorReadingEntity): Long
+    suspend fun insertSamples(samples: List<DownloadedHistorySampleEntity>)
 
-    @Query("SELECT * FROM sensor_readings WHERE sensorAddress = :address ORDER BY receptionEpochMillis DESC LIMIT 1")
-    suspend fun latest(address: String): SensorReadingEntity?
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSyncState(state: HistorySyncStateEntity)
 
-    @Query("SELECT * FROM sensor_readings WHERE sensorAddress = :address ORDER BY receptionEpochMillis ASC")
-    fun observeHistory(address: String): Flow<List<SensorReadingEntity>>
-
-    @Query("SELECT * FROM sensor_readings WHERE sensorAddress = :address AND receptionEpochMillis BETWEEN :fromEpochMillis AND :toEpochMillis ORDER BY receptionEpochMillis ASC")
-    fun observeHistoryInRange(address: String, fromEpochMillis: Long, toEpochMillis: Long): Flow<List<SensorReadingEntity>>
-
-    @Query("SELECT sensor_readings.* FROM sensor_readings INNER JOIN (SELECT sensorAddress, MAX(receptionEpochMillis) AS latestReceptionEpochMillis FROM sensor_readings GROUP BY sensorAddress) latest ON sensor_readings.sensorAddress = latest.sensorAddress AND sensor_readings.receptionEpochMillis = latest.latestReceptionEpochMillis")
-    fun observeLatestForAllSensors(): Flow<List<SensorReadingEntity>>
-
-    @Query("DELETE FROM sensor_readings WHERE receptionEpochMillis < :beforeEpochMillis")
-    suspend fun deleteOlderThan(beforeEpochMillis: Long)
+    @Query("DELETE FROM downloaded_history_samples WHERE recordedEpochMillis IS NOT NULL AND recordedEpochMillis < :beforeEpochMillis")
+    suspend fun deleteDatedSamplesOlderThan(beforeEpochMillis: Long)
 
     @Transaction
-    suspend fun insertAndApplyRetention(reading: SensorReadingEntity, beforeEpochMillis: Long?) {
-        insert(reading)
-        if (beforeEpochMillis != null) deleteOlderThan(beforeEpochMillis)
+    suspend fun insertInitialDownload(
+        samples: List<DownloadedHistorySampleEntity>,
+        state: HistorySyncStateEntity,
+    ) {
+        insertSamples(samples)
+        insertSyncState(state)
     }
 }
