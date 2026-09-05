@@ -1,0 +1,175 @@
+<div id="boat-navigation-prototype">
+  <style>
+    #boat-navigation-prototype { --nav-bg:light-dark(#fafafa,#202020); --nav-ink:light-dark(#242424,#ededed); --nav-border:light-dark(#c7c7c7,#626262); color:var(--nav-ink); font:14px system-ui,sans-serif; }
+    #boat-navigation-prototype [hidden] { display:none !important; }
+    #boat-navigation-prototype button, #boat-navigation-prototype input { font:inherit; color:var(--nav-ink); background:var(--nav-bg); border:1px solid var(--nav-border); border-radius:8px; min-height:44px; padding:8px 10px; }
+    #boat-navigation-prototype button { cursor:pointer; }
+    #boat-navigation-prototype button:focus-visible { outline:2px solid var(--nav-ink); outline-offset:2px; }
+    #boat-navigation-prototype .editor { max-width:390px; margin:auto; padding:16px; border:1px solid var(--nav-border); border-radius:20px; background:var(--nav-bg); }
+    #boat-navigation-prototype .editor h2 { font-size:22px; font-weight:500; }
+    #boat-navigation-prototype .editor label { display:block; margin:18px 0 6px; }
+    #boat-navigation-prototype .editor input:not([type=file]) { display:block; box-sizing:border-box; width:100%; font-size:16px; }
+    #boat-navigation-prototype .editor .hint { font-size:12px; margin:6px 0; }
+    #boat-navigation-prototype .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+    #boat-navigation-prototype .photo-preview { width:64px; height:64px; object-fit:cover; border:1px solid var(--nav-border); border-radius:8px; margin:8px 0; }
+    #boat-navigation-prototype .info-row { padding:12px 0; border-bottom:1px solid var(--nav-border); }
+    #boat-navigation-prototype .info-row dt { font-size:12px; margin-bottom:4px; }
+    #boat-navigation-prototype .info-row dd { margin:0; overflow-wrap:anywhere; }
+    #boat-live-wireframe .top-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    #boat-live-wireframe .phone { position:relative; }
+    #boat-live-wireframe .sensor { position:relative; }
+    #boat-live-wireframe .sensor-heading { padding-right:34px; }
+    #boat-live-wireframe .menu-toggle { position:absolute; top:4px; right:3px; z-index:2; width:40px; padding:8px; background:transparent; border:0; font-size:22px; }
+    #boat-live-wireframe .card-action { position:absolute; inset:0; z-index:1; width:100%; height:100%; background:transparent; border:0; border-radius:10px; }
+    #boat-live-wireframe .card-action:focus-visible { outline-offset:2px; }
+    #boat-live-wireframe .thumbnail img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
+    #boat-live-wireframe .menu-panel { position:absolute; z-index:5; top:70px; left:16px; right:16px; padding:16px; background:var(--live-card); border:1px solid var(--live-border); border-radius:12px; box-shadow:0 0 0 100vmax light-dark(#00000022,#00000055); }
+    #boat-live-wireframe .menu-panel h3 { margin:0 0 10px; }
+    #boat-live-wireframe .menu-panel button { display:block; width:100%; margin:6px 0; text-align:left; }
+    #boat-live-wireframe .history-label { font-size:11px; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor { border:0; border-bottom:1px solid var(--live-border); border-radius:0; background:transparent; padding:16px 0; margin:0; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor-heading { padding-right:0; }
+    #boat-navigation-prototype[data-layout="clean"] .nearby { border-top:0; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor-status { margin-top:10px; }
+    #boat-navigation-prototype[data-layout="clean"] dl { margin-top:10px; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor dl dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+    #boat-navigation-prototype[data-layout="clean"] .sensor dd { font-size:22px; }
+    #boat-navigation-prototype[data-layout="clean"] .history-label { margin:0; display:inline-flex; align-items:center; justify-content:center; min-width:28px; min-height:28px; }
+    #boat-navigation-prototype[data-layout="clean"] .history-label svg { width:20px; height:20px; }
+    #boat-navigation-prototype[data-layout="clean"] .top-actions { display:flex; gap:6px; }
+    #boat-navigation-prototype[data-layout="clean"] .management-actions { display:flex; gap:8px; margin-top:10px; }
+  </style>
+  <!-- LIVE_FRAGMENT -->
+  <div class="history-container" hidden><!-- HISTORY_FRAGMENT --></div>
+  <section class="editor" hidden></section>
+</div>
+<script>
+  (() => {
+    const root = document.getElementById('boat-navigation-prototype');
+    const live = document.getElementById('boat-live-wireframe');
+    const history = document.getElementById('boat-history-wireframe');
+    const historyContainer = root.querySelector('.history-container');
+    const editor = root.querySelector('.editor');
+    const cleanVariant = root.dataset.layout === 'clean';
+    let managing = false;
+    const sensors = [
+      {id:'cabin',broadcast:'Forward cabin',name:'Forward cabin',placement:'Above the wardrobe',photo:'sample',registered:true,history:0,age:'12 seconds',battery:86,values:[26.4,64,1013]},
+      {id:'outside',broadcast:'Outdoors',name:'Outdoors',placement:'Under the cockpit canopy',photo:null,registered:true,history:2,age:'2 hours',battery:42,values:[23.1,71,1013]},
+      {id:'battery',broadcast:'Battery temperature',name:'Battery temperature',placement:'',photo:null,registered:true,history:null,age:'20 seconds',battery:null,values:[31.2,null,null]},
+      {id:'nearby',broadcast:'SENE-7C2A',name:'SENE-7C2A',placement:'',photo:null,registered:false,history:1,age:'5 seconds',battery:73,values:[25.8,66,1013]}
+    ];
+    const escape = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let focusedSensor = null;
+    let imageDraft = null;
+    let editSession = 0;
+    function icons() { if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:18,height:18}}); }
+    function card(sensor) {
+      const title = sensor.registered ? sensor.name : sensor.broadcast;
+      const photo = sensor.photo === 'sample' ? '<div class="thumbnail" role="img" aria-label="Sample photo placeholder"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div>' : sensor.photo ? `<div class="thumbnail"><img src="${escape(sensor.photo)}" alt="Sensor photo"></div>` : '';
+      const heading = sensor.registered ? `<div class="identity"><div class="name-row"><h4>${escape(title)}</h4></div>${sensor.placement?`<p class="placement">${escape(sensor.placement)}</p>`:''}</div>` : `<h4>${escape(title)}</h4><span class="registration">Not registered</span>`;
+      const measurements = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
+      const battery = sensor.battery===null?'':`<span class="battery" aria-label="Sensor battery: ${sensor.battery} percent"><i data-lucide="${sensor.battery>75?'battery-full':'battery-medium'}" aria-hidden="true"></i><span>${sensor.battery}%</span></span>`;
+      const historyLabel = sensor.registered ? `<span class="history-label ${sensor.history===null?'live-only':''}">${sensor.history===null?'Live only':'History →'}</span>` : '';
+      const action = !sensor.registered || sensor.history!==null ? `<button class="card-action" type="button" data-open="${sensor.id}" aria-label="${sensor.registered?'Open history for':'Register'} ${escape(title)}"></button>` : '';
+      if(cleanVariant) {
+        if(managing) return `<article class="sensor"><div class="sensor-heading">${photo}${heading}</div><div class="management-actions"><button type="button" data-edit="${sensor.id}">${sensor.registered?'Edit':'Register'}</button><button type="button" data-info="${sensor.id}">Information</button></div></article>`;
+        const capability = !sensor.registered ? '' : sensor.history===null ? '<span class="history-label live-only">Live only</span>' : '<span class="history-label" aria-label="History available" data-tooltip="Open history"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>';
+        return `<article class="sensor"><div class="sensor-heading">${photo}${heading}${capability}</div><dl>${measurements}</dl><div class="sensor-status"><p class="received">Received ${sensor.age} ago</p>${battery}</div>${action}</article>`;
+      }
+      return `<article class="sensor"><div class="sensor-heading">${photo}${heading}</div><dl>${measurements}</dl>${historyLabel}<div class="sensor-status"><p class="received">Received ${sensor.age} ago</p>${battery}</div>${action}<button class="menu-toggle" type="button" data-menu="${sensor.id}" aria-label="Actions for ${escape(title)}">⋮</button></article>`;
+    }
+    function renderLive() {
+      const registered = sensors.filter(s => s.registered), nearby = sensors.filter(s => !s.registered);
+      live.querySelector('.phone').innerHTML = `<header><div class="top-row"><h2>Live</h2><button class="open-overview" type="button">History</button></div><p class="subtitle">Interactive wireframe · illustrative data</p></header><section><h3>Registered sensors · ${registered.length}</h3>${registered.map(card).join('')}</section>${nearby.length?`<section class="nearby"><h3>Other nearby sensors · ${nearby.length}</h3>${nearby.map(card).join('')}</section>`:''}<div class="menu-panel" role="dialog" aria-modal="true" aria-label="Sensor actions" hidden></div>`;
+      if(cleanVariant) {
+        live.querySelector('header').innerHTML = `<div class="top-row"><h2>${managing?'Sensors':'Live'}</h2><div class="top-actions">${managing?'':'<button class="open-overview" type="button">History</button>'}<button class="manage-all" type="button">${managing?'Done':'Manage'}</button></div></div><p class="subtitle">${managing?'Sensor names, placement and information':'Illustrative readings'}</p>`;
+        live.querySelector('.manage-all').onclick = () => { managing = !managing; renderLive(); live.querySelector('.manage-all').focus(); };
+        live.querySelectorAll('[data-edit]').forEach(button => { button.onclick = () => { focusedSensor = button.dataset.edit; openEditor(sensors.find(s => s.id===focusedSensor)); }; });
+        live.querySelectorAll('[data-info]').forEach(button => { button.onclick = () => { focusedSensor = button.dataset.info; openInfo(sensors.find(s => s.id===focusedSensor)); }; });
+      }
+      if(live.querySelector('.open-overview')) live.querySelector('.open-overview').onclick = () => openHistory(null);
+      live.querySelectorAll('[data-open]').forEach(button => { button.onclick = () => {
+        const sensor = sensors.find(s => s.id===button.dataset.open);
+        focusedSensor = sensor.id;
+        if(sensor.registered) openHistory(sensor.history); else openEditor(sensor);
+      }; });
+      live.querySelectorAll('[data-menu]').forEach(button => { button.onclick = () => openMenu(sensors.find(s => s.id===button.dataset.menu)); });
+      icons();
+    }
+    function showLive() {
+      editSession += 1;
+      editor.hidden = true; historyContainer.hidden = true; live.hidden = false;
+      renderLive();
+      const target = cleanVariant ? (managing?live.querySelector('.manage-all'):live.querySelector('.open-overview')) : focusedSensor ? live.querySelector(`[data-menu="${focusedSensor}"]`) : live.querySelector('.open-overview');
+      if(target) target.focus({preventScroll:true});
+    }
+    function openHistory(index) {
+      live.hidden = true; editor.hidden = true; historyContainer.hidden = false;
+      const labels = ['Forward cabin','SENE-7C2A','Outdoors'];
+      sensors.filter(s => s.history!==null).forEach(s => { labels[s.history] = s.name; });
+      history.historyPrototype.open(index,showLive,labels,sensors.filter(s => s.registered && s.history!==null).map(s => s.history));
+      history.querySelector('.back').focus({preventScroll:true});
+    }
+    function closeMenu() { live.querySelector('.menu-panel').hidden = true; live.querySelector(`[data-menu="${focusedSensor}"]`).focus({preventScroll:true}); }
+    function openMenu(sensor) {
+      focusedSensor = sensor.id;
+      const menu = live.querySelector('.menu-panel');
+      menu.innerHTML = `<h3>${escape(sensor.registered?sensor.name:sensor.broadcast)}</h3><button class="edit" type="button">${sensor.registered?'Edit local details':'Register sensor'}</button><button class="information" type="button">Sensor information</button><button class="close-menu" type="button">Close</button>`;
+      menu.hidden = false;
+      menu.querySelector('.edit').onclick = () => openEditor(sensor);
+      menu.querySelector('.information').onclick = () => openInfo(sensor);
+      menu.querySelector('.close-menu').onclick = closeMenu;
+      menu.querySelector('.edit').focus();
+    }
+    function openEditor(sensor) {
+      const session = ++editSession;
+      live.hidden = true; historyContainer.hidden = true; editor.hidden = false;
+      imageDraft = sensor.photo;
+      editor.innerHTML = `<button class="cancel" type="button">← Live</button><h2>${sensor.registered?'Edit sensor':'Register sensor'}</h2><form><label for="nav-name">Local name</label><input id="nav-name" name="localName" value="${escape(sensor.registered?sensor.name:sensor.broadcast)}"><p class="hint">Used only in this app. Leave blank to use the broadcast name.</p><label for="nav-placement">Placement · optional</label><input id="nav-placement" name="placement" value="${escape(sensor.placement)}" placeholder="For example, above the wardrobe"><label>Photo · optional</label><div class="photo-state"></div><div class="actions"><button class="choose-photo" type="button">Choose photo</button><button class="remove-photo" type="button">Remove photo</button></div><input class="photo-file" type="file" accept="image/*" aria-label="Choose sensor photo" hidden><p class="hint">Changes in this demo last only until it is reloaded.</p><div class="actions"><button class="save" type="button">${sensor.registered?'Save changes':'Register'}</button><button class="cancel" type="button">Cancel</button></div></form>`;
+      const preview = () => {
+        editor.querySelector('.photo-state').innerHTML = imageDraft==='sample'?'<p class="hint">Sample photo attached</p>':imageDraft?`<img class="photo-preview" src="${escape(imageDraft)}" alt="Selected sensor photo">`:'<p class="hint">No photo</p>';
+        editor.querySelector('.remove-photo').hidden = !imageDraft;
+      };
+      preview();
+      editor.querySelectorAll('.cancel').forEach(button => { button.onclick = showLive; });
+      editor.querySelector('.choose-photo').onclick = () => editor.querySelector('.photo-file').click();
+      editor.querySelector('.remove-photo').onclick = () => { imageDraft = null; preview(); };
+      editor.querySelector('.photo-file').onchange = event => {
+        const file = event.target.files[0];
+        if(!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = () => { if(editor.hidden || session!==editSession) return; imageDraft = reader.result; preview(); };
+        reader.readAsDataURL(file);
+      };
+      editor.querySelector('.save').onclick = event => {
+        event.preventDefault();
+        sensor.name = editor.querySelector('#nav-name').value.trim() || sensor.broadcast;
+        sensor.placement = editor.querySelector('#nav-placement').value.trim();
+        sensor.photo = imageDraft;
+        sensor.registered = true;
+        showLive();
+      };
+      editor.querySelector('#nav-name').focus({preventScroll:true});
+      if(cleanVariant && managing) editor.querySelector('.cancel').textContent = '← Sensors';
+    }
+    function openInfo(sensor) {
+      live.hidden = true; editor.hidden = false;
+      const row = (label,value) => `<div class="info-row"><dt>${label}</dt><dd>${escape(value)}</dd></div>`;
+      editor.innerHTML = `<button class="back-live" type="button">← Live</button><h2>Sensor information</h2><dl>${row('Broadcast name',sensor.broadcast)}${row('Local name',sensor.registered?sensor.name:'Not registered')}${row('Placement',sensor.placement||'Not set')}${row('History',sensor.history===null?'Not supported':'Supported')}${row('Last reception',sensor.age+' ago')}${row('Battery',sensor.battery===null?'Not reported':sensor.battery+'%')}</dl><p class="hint">Illustrative sensor information</p>`;
+      editor.querySelector('.back-live').onclick = showLive;
+      if(cleanVariant && managing) editor.querySelector('.back-live').textContent = '← Sensors';
+      editor.querySelector('.back-live').focus({preventScroll:true});
+    }
+    root.addEventListener('keydown',event => {
+      const menu = live.querySelector('.menu-panel');
+      if(live.hidden || !menu || menu.hidden) return;
+      if(event.key==='Escape') { event.preventDefault(); closeMenu(); }
+      if(event.key==='Tab') {
+        const buttons = [...menu.querySelectorAll('button')];
+        if(event.shiftKey && document.activeElement===buttons[0]) { event.preventDefault(); buttons[buttons.length-1].focus(); }
+        else if(!event.shiftKey && document.activeElement===buttons[buttons.length-1]) { event.preventDefault(); buttons[0].focus(); }
+      }
+    });
+    renderLive();
+  })();
+</script>

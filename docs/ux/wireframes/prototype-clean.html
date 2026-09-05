@@ -1,0 +1,565 @@
+<div id="boat-navigation-prototype" data-layout="clean">
+  <style>
+    #boat-navigation-prototype { --nav-bg:light-dark(#fafafa,#202020); --nav-ink:light-dark(#242424,#ededed); --nav-border:light-dark(#c7c7c7,#626262); color:var(--nav-ink); font:14px system-ui,sans-serif; }
+    #boat-navigation-prototype [hidden] { display:none !important; }
+    #boat-navigation-prototype button, #boat-navigation-prototype input { font:inherit; color:var(--nav-ink); background:var(--nav-bg); border:1px solid var(--nav-border); border-radius:8px; min-height:44px; padding:8px 10px; }
+    #boat-navigation-prototype button { cursor:pointer; }
+    #boat-navigation-prototype button:focus-visible { outline:2px solid var(--nav-ink); outline-offset:2px; }
+    #boat-navigation-prototype .editor { max-width:390px; margin:auto; padding:16px; border:1px solid var(--nav-border); border-radius:20px; background:var(--nav-bg); }
+    #boat-navigation-prototype .editor h2 { font-size:22px; font-weight:500; }
+    #boat-navigation-prototype .editor label { display:block; margin:18px 0 6px; }
+    #boat-navigation-prototype .editor input:not([type=file]) { display:block; box-sizing:border-box; width:100%; font-size:16px; }
+    #boat-navigation-prototype .editor .hint { font-size:12px; margin:6px 0; }
+    #boat-navigation-prototype .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+    #boat-navigation-prototype .photo-preview { width:64px; height:64px; object-fit:cover; border:1px solid var(--nav-border); border-radius:8px; margin:8px 0; }
+    #boat-navigation-prototype .info-row { padding:12px 0; border-bottom:1px solid var(--nav-border); }
+    #boat-navigation-prototype .info-row dt { font-size:12px; margin-bottom:4px; }
+    #boat-navigation-prototype .info-row dd { margin:0; overflow-wrap:anywhere; }
+    #boat-live-wireframe .top-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    #boat-live-wireframe .phone { position:relative; }
+    #boat-live-wireframe .sensor { position:relative; }
+    #boat-live-wireframe .sensor-heading { padding-right:34px; }
+    #boat-live-wireframe .menu-toggle { position:absolute; top:4px; right:3px; z-index:2; width:40px; padding:8px; background:transparent; border:0; font-size:22px; }
+    #boat-live-wireframe .card-action { position:absolute; inset:0; z-index:1; width:100%; height:100%; background:transparent; border:0; border-radius:10px; }
+    #boat-live-wireframe .card-action:focus-visible { outline-offset:2px; }
+    #boat-live-wireframe .thumbnail img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
+    #boat-live-wireframe .menu-panel { position:absolute; z-index:5; top:70px; left:16px; right:16px; padding:16px; background:var(--live-card); border:1px solid var(--live-border); border-radius:12px; box-shadow:0 0 0 100vmax light-dark(#00000022,#00000055); }
+    #boat-live-wireframe .menu-panel h3 { margin:0 0 10px; }
+    #boat-live-wireframe .menu-panel button { display:block; width:100%; margin:6px 0; text-align:left; }
+    #boat-live-wireframe .history-label { font-size:11px; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor { border:0; border-bottom:1px solid var(--live-border); border-radius:0; background:transparent; padding:16px 0; margin:0; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor-heading { padding-right:0; }
+    #boat-navigation-prototype[data-layout="clean"] .nearby { border-top:0; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor-status { margin-top:10px; }
+    #boat-navigation-prototype[data-layout="clean"] dl { margin-top:10px; }
+    #boat-navigation-prototype[data-layout="clean"] .sensor dl dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+    #boat-navigation-prototype[data-layout="clean"] .sensor dd { font-size:22px; }
+    #boat-navigation-prototype[data-layout="clean"] .history-label { margin:0; display:inline-flex; align-items:center; justify-content:center; min-width:28px; min-height:28px; }
+    #boat-navigation-prototype[data-layout="clean"] .history-label svg { width:20px; height:20px; }
+    #boat-navigation-prototype[data-layout="clean"] .top-actions { display:flex; gap:6px; }
+    #boat-navigation-prototype[data-layout="clean"] .management-actions { display:flex; gap:8px; margin-top:10px; }
+  </style>
+  <div id="boat-live-wireframe" aria-label="Live sensor overview wireframe">
+  <style>
+    #boat-live-wireframe { --live-bg:light-dark(#fafafa,#202020); --live-card:light-dark(#ffffff,#292929); --live-ink:light-dark(#242424,#ededed); --live-border:light-dark(#c7c7c7,#626262); --live-muted:light-dark(#545454,#c1c1c1); font:14px system-ui,sans-serif; color:var(--live-ink); }
+    #boat-live-wireframe * { box-sizing:border-box; }
+    #boat-live-wireframe .phone { width:100%; max-width:390px; margin:auto; background:var(--live-bg); border:1px solid var(--live-border); border-radius:20px; padding:18px 16px; }
+    #boat-live-wireframe h2 { margin:6px 0; font-size:24px; font-weight:500; }
+    #boat-live-wireframe .subtitle { color:var(--live-muted); margin:4px 0 20px; font-size:12px; }
+    #boat-live-wireframe h3 { margin:20px 0 10px; font-size:14px; font-weight:500; }
+    #boat-live-wireframe .sensor { background:var(--live-card); border:1px solid var(--live-border); border-radius:10px; padding:var(--live-padding,14px); margin:0 0 10px; }
+    #boat-live-wireframe h4 { margin:0; font-size:16px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #boat-live-wireframe .sensor-heading { display:flex; align-items:center; gap:8px; min-height:24px; margin-bottom:4px; }
+    #boat-live-wireframe .identity { min-width:0; flex:1; }
+    #boat-live-wireframe .name-row { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+    #boat-live-wireframe .history-label { display:block; margin-top:14px; font-size:12px; white-space:nowrap; }
+    #boat-live-wireframe .live-only { color:var(--live-muted); }
+    #boat-live-wireframe .placement { margin:3px 0 0; font-size:12px; color:var(--live-muted); overflow-wrap:anywhere; }
+    #boat-live-wireframe .thumbnail { width:40px; height:40px; flex-shrink:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; border:1px solid var(--live-border); border-radius:6px; color:var(--live-muted); font-size:11px; }
+    #boat-live-wireframe .thumbnail svg { width:18px; height:18px; }
+    #boat-live-wireframe .sensor-status { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; min-height:18px; margin-top:14px; }
+    #boat-live-wireframe .battery { display:inline-flex; margin-left:auto; align-items:center; gap:4px; flex-shrink:0; font-size:12px; color:var(--live-muted); font-variant-numeric:tabular-nums; }
+    #boat-live-wireframe .battery svg { width:18px; height:18px; }
+    #boat-live-wireframe .received { font-size:12px; color:var(--live-muted); margin:0; }
+    #boat-live-wireframe dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 8px; margin:14px 0 0; }
+    #boat-live-wireframe dl div { min-width:0; }
+    #boat-live-wireframe dt { font-size:12px; color:var(--live-muted); margin-bottom:4px; }
+    #boat-live-wireframe dd { margin:0; font-size:20px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    #boat-live-wireframe dd span { font-size:12px; font-weight:400; }
+    #boat-live-wireframe .nearby { margin-top:22px; padding-top:2px; border-top:1px solid var(--live-border); }
+    #boat-live-wireframe .registration { flex-shrink:0; display:inline-block; padding:2px 5px; border:1px solid var(--live-border); border-radius:4px; font-size:11px; white-space:nowrap; }
+  </style>
+  <section class="phone">
+    <header><h2>Live</h2><p class="subtitle">Wireframe · illustrative readings</p></header>
+    <section aria-labelledby="live-registered-heading">
+      <h3 id="live-registered-heading">Registered sensors · 3</h3>
+      <article class="sensor">
+        <div class="sensor-heading"><div class="thumbnail" role="img" aria-label="Placeholder for the optional sensor photo"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div><div class="identity"><div class="name-row"><h4>Forward cabin</h4></div><p class="placement">Above the wardrobe</p></div></div><dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl><span class="history-label">History →</span>
+        <div class="sensor-status"><p class="received">Received 12 seconds ago</p><span class="battery" aria-label="Sensor battery: 86 percent"><i data-lucide="battery-full" aria-hidden="true"></i><span>86%</span></span></div>
+      </article>
+      <article class="sensor">
+        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Outdoors</h4></div><p class="placement">Under the cockpit canopy</p></div></div><dl><div><dt>Temperature</dt><dd>23.1 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>71 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl><span class="history-label">History →</span>
+        <div class="sensor-status"><p class="received">Received 2 hours ago</p><span class="battery" aria-label="Sensor battery: 42 percent"><i data-lucide="battery-medium" aria-hidden="true"></i><span>42%</span></span></div>
+      </article>
+      <article class="sensor">
+        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Battery temperature</h4></div></div></div><dl><div><dt>Temperature</dt><dd>31.2 <span>°C</span></dd></div></dl><span class="history-label live-only">Live only</span>
+        <div class="sensor-status"><p class="received">Received 20 seconds ago</p></div>
+      </article>
+    </section>
+    <section class="nearby" aria-labelledby="live-nearby-heading">
+      <h3 id="live-nearby-heading">Other nearby sensors · 1</h3>
+      <article class="sensor">
+        <div class="sensor-heading"><h4>SENE-7C2A</h4><span class="registration">Not registered</span></div><dl><div><dt>Temperature</dt><dd>25.8 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>66 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+        <div class="sensor-status"><p class="received">Received 5 seconds ago</p><span class="battery" aria-label="Sensor battery: 73 percent"><i data-lucide="battery-medium" aria-hidden="true"></i><span>73%</span></span></div>
+      </article>
+    </section>
+  </section>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-live-wireframe');
+      const state = {padding:14};
+      function render() { root.style.setProperty('--live-padding',`${state.padding}px`); }
+      render();
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({container:root,onChange:render});
+        tweak.addSlider(state,'padding',{label:'Sensor card spacing',min:8,max:20,step:2,unit:'px'});
+      }
+    })();
+  </script>
+</div>
+
+  <div class="history-container" hidden><div id="boat-history-wireframe" aria-label="History phone wireframe">
+  <style>
+    #boat-history-wireframe { --boat-bg:light-dark(#fafafa,#202020); --boat-ink:light-dark(#252525,#ededed); --boat-line:light-dark(#c8c8c8,#606060); --boat-soft:light-dark(#eeeeee,#303030); color:var(--boat-ink); font-family:system-ui,sans-serif; }
+    #boat-history-wireframe * { box-sizing:border-box; }
+    #boat-history-wireframe .phone { max-width:390px; height:740px; display:flex; flex-direction:column; margin:auto; background:var(--boat-bg); border:1px solid var(--boat-line); border-radius:22px; overflow:hidden; }
+    #boat-history-wireframe [hidden] { display:none !important; }
+    #boat-history-wireframe header, #boat-history-wireframe footer, #boat-history-wireframe .time-dock { flex-shrink:0; }
+    #boat-history-wireframe header { padding:18px 16px 12px; border-bottom:1px solid var(--boat-line); }
+    #boat-history-wireframe h2 { font-size:22px; font-weight:500; margin:8px 0; }
+    #boat-history-wireframe .note { font-size:12px; margin:4px 0; }
+    #boat-history-wireframe .controls { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
+    #boat-history-wireframe label { flex:1; min-width:120px; font-size:13px; }
+    #boat-history-wireframe select, #boat-history-wireframe button { font:inherit; color:var(--boat-ink); background:var(--boat-bg); border:1px solid var(--boat-line); border-radius:8px; min-height:44px; padding:8px 10px; cursor:pointer; }
+    #boat-history-wireframe select { display:block; width:100%; margin-top:4px; font-size:16px; }
+    #boat-history-wireframe button:focus-visible, #boat-history-wireframe select:focus-visible { outline:2px solid var(--boat-ink); outline-offset:2px; }
+    #boat-history-wireframe .content { flex:1; min-height:0; overflow-y:auto; padding:12px 16px; }
+    #boat-history-wireframe .sensor { display:block; width:100%; padding:12px; margin-bottom:12px; text-align:left; }
+    #boat-history-wireframe .sensor-head { display:flex; justify-content:space-between; gap:8px; font-weight:500; }
+    #boat-history-wireframe .summary { font-size:13px; display:block; margin-top:8px; }
+    #boat-history-wireframe svg { display:block; width:100%; overflow:visible; }
+    #boat-history-wireframe svg text { fill:var(--boat-ink); font:12px system-ui,sans-serif; }
+    #boat-history-wireframe .grid { stroke:var(--boat-line); stroke-width:1; }
+    #boat-history-wireframe .trend { fill:none; stroke:var(--boat-ink); stroke-width:2; stroke-linejoin:round; }
+    #boat-history-wireframe .comparison { stroke-dasharray:5 4; }
+    #boat-history-wireframe .back { border:0; padding-left:0; }
+    #boat-history-wireframe .legend { font-size:13px; margin:12px 0; }
+    #boat-history-wireframe footer { padding:10px 16px; border-top:1px solid var(--boat-line); font-size:12px; }
+    #boat-history-wireframe .timeline { position:relative; height:48px; margin:8px 14px 0; background:var(--boat-soft); border-radius:6px; }
+    #boat-history-wireframe .window { position:absolute; top:0; height:48px; background:var(--boat-bg); border:2px solid var(--boat-ink); border-radius:6px; }
+    #boat-history-wireframe .timeline button { position:absolute; top:0; height:48px; min-height:44px; padding:0; touch-action:none; user-select:none; }
+    #boat-history-wireframe .pan { inset:0; width:100%; border:0; cursor:grab; background:var(--boat-soft); }
+    #boat-history-wireframe .handle { width:28px; z-index:2; cursor:ew-resize; }
+    #boat-history-wireframe .start { left:-14px; }
+    #boat-history-wireframe .end { right:-14px; }
+    #boat-history-wireframe .timeline-labels { display:flex; justify-content:space-between; margin:4px 0 10px; font-size:12px; }
+    #boat-history-wireframe .time-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    #boat-history-wireframe .all-time { font-size:12px; }
+    #boat-history-wireframe .heading { display:flex; align-items:center; gap:8px; }
+    #boat-history-wireframe .detail header { padding:8px 16px; }
+    #boat-history-wireframe .detail h2 { font-size:18px; margin:0; }
+    #boat-history-wireframe .detail .controls { margin:4px 0 0; }
+    #boat-history-wireframe .detail .controls label { display:flex; align-items:center; gap:12px; }
+    #boat-history-wireframe .detail select { flex:1; width:auto; margin:0; }
+    #boat-history-wireframe .detail .content { display:flex; flex-direction:column; gap:8px; overflow:hidden; }
+    #boat-history-wireframe .detail-plot { flex:1; min-height:0; }
+    #boat-history-wireframe .detail-plot svg { height:100%; }
+    #boat-history-wireframe .detail .summary { margin:0; }
+    #boat-history-wireframe .detail .legend { margin:0; font-size:12px; }
+    #boat-history-wireframe .comparison-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    #boat-history-wireframe .comparison-row button { font-size:13px; flex-shrink:0; }
+    #boat-history-wireframe .time-dock { padding:0 16px; border-top:1px solid var(--boat-line); }
+    #boat-history-wireframe .phone.detail { position:relative; width:100%; max-width:740px; height:390px; border-radius:16px; }
+    #boat-history-wireframe .detail header { position:absolute; z-index:3; top:8px; left:8px; right:8px; padding:0 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--boat-bg); border:0; border-radius:8px; }
+    #boat-history-wireframe .detail .heading { min-width:0; }
+    #boat-history-wireframe .detail h2 { font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #boat-history-wireframe .detail .controls { margin:0; flex-shrink:0; }
+    #boat-history-wireframe .detail .controls label { min-width:0; }
+    #boat-history-wireframe .detail .measurement-label { display:none; }
+    #boat-history-wireframe .detail select { font-size:14px; padding:4px; border:0; }
+    #boat-history-wireframe .detail .content { position:absolute; inset:58px 0 8px; padding:0 12px; display:block; overflow:hidden; touch-action:none; user-select:none; cursor:grab; }
+    #boat-history-wireframe .detail .detail-plot { height:100%; }
+    #boat-history-wireframe .detail .summary, #boat-history-wireframe .detail .comparison-row, #boat-history-wireframe .detail footer { display:none; }
+    #boat-history-wireframe .detail .time-dock { position:absolute; z-index:4; bottom:52px; left:12px; right:12px; padding:8px 16px; background:var(--boat-bg); border:1px solid var(--boat-line); border-radius:8px; }
+    #boat-history-wireframe .overlay-bar { position:absolute; z-index:3; top:80px; right:20px; }
+    #boat-history-wireframe .overlay-bar button { width:44px; height:44px; padding:10px; border-radius:50%; background:var(--boat-bg); }
+    #boat-history-wireframe .overlay-bar svg { width:22px; height:22px; }
+    #boat-history-wireframe .sample-readout { position:absolute; z-index:4; bottom:38px; left:64px; max-width:calc(100% - 84px); padding:8px 10px; border:1px solid var(--boat-line); border-radius:6px; background:var(--boat-bg); font-size:12px; pointer-events:none; }
+    #boat-history-wireframe .sample-readout p { margin:4px 0; }
+    #boat-history-wireframe .cursor-line { stroke:var(--boat-ink); stroke-width:1; stroke-dasharray:3 3; }
+    #boat-history-wireframe .cursor-mark { fill:var(--boat-bg); stroke:var(--boat-ink); stroke-width:2; }
+    #boat-history-wireframe .detail-legend { position:absolute; z-index:2; top:54px; right:20px; font-size:12px; background:var(--boat-bg); padding:0 4px; }
+    #boat-history-wireframe .detail .status { position:absolute; top:42px; left:56px; font-size:11px; background:var(--boat-bg); }
+    @media(max-width:440px) { #boat-history-wireframe .detail h2 { max-width:125px; } #boat-history-wireframe .overlay-bar button { font-size:12px; padding:4px; } }
+  </style>
+  <section class="phone">
+    <header>
+      <div class="note prototype-label">Wireframe · illustrative data</div>
+      <div class="heading"><button class="back" type="button" aria-label="Back to history overview" hidden>←</button><h2>History</h2></div>
+      <div class="controls">
+        <label><span class="measurement-label">Measurement</span><select class="metric" aria-label="Measurement"><option value="temperature">Temperature</option><option value="humidity">Humidity</option><option value="pressure">Pressure</option></select></label>
+      </div>
+      <div class="time-navigation">
+      <div class="time-heading"><p class="note dates" aria-live="polite"></p><button class="all-time" type="button">All history</button></div>
+      <div class="timeline" aria-label="Available history from March to August 2026">
+        <div class="window">
+          <button class="pan" type="button" aria-label="Move selected period; use left and right arrow keys">↔</button>
+          <button class="handle start" type="button" aria-label="Adjust start date; use left and right arrow keys">Ⅰ</button>
+          <button class="handle end" type="button" aria-label="Adjust end date; use left and right arrow keys">Ⅰ</button>
+        </div>
+      </div>
+      <div class="timeline-labels"><span>Mar 2026</span><span>Aug 2026</span></div>
+      </div>
+      <p class="note status" aria-live="polite">Updating saved sensors… · demo</p>
+    </header>
+    <div class="content"></div>
+    <div class="time-dock" hidden></div>
+    <div class="detail-legend" hidden></div>
+    <div class="overlay-bar" hidden><button class="overlay-compare" type="button" aria-label="Compare with Outdoors" data-tooltip="Compare with Outdoors"><i data-lucide="layers-2" aria-hidden="true"></i></button></div>
+    <div class="sample-readout" role="status" aria-live="polite" hidden></div>
+    <footer>Wireframe · illustrative historical data</footer>
+  </section>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-history-wireframe');
+      const content = root.querySelector('.content');
+      const timeNavigation = root.querySelector('.time-navigation');
+      const names = ['Forward cabin', 'Dinette', 'Outdoors'];
+      const escapeMarkup = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const state = { selected:null, compare:false, density:'comfortable', start:0, end:183, inspected:null };
+      let updateRoute = null;
+      let updateTimer = null;
+      let externalBack = null;
+      let directEntry = false;
+      let visibleSensors = [0,1,2];
+      let detailGeometry = null;
+      const lastDay = 183;
+      const minimumSpan = 35;
+      const dateLabel = day => new Date(Date.UTC(2026,2,1+day)).toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'});
+      const series = {
+        temperature:[[11,13,8,16,17,20,18,23,29,24,26,25],[13,14,11,17,19,22,21,25,32,26,28,27],[8,11,5,13,15,18,16,21,27,22,24,23]],
+        humidity:[[65,70,85,76,67,63,72,60,58,62,64,68],[60,65,80,71,62,58,67,55,53,57,59,63],[72,77,90,83,74,70,79,67,65,69,71,75]],
+        pressure:[[1014,1010,997,1020,1018,1012,1025,1019,1011,1016,1021,1017],[1014,1010,997,1020,1018,1012,1025,1019,1011,1016,1021,1017],[1014,1010,997,1020,1018,1012,1025,1019,1011,1016,1021,1017]]
+      };
+      const units = {temperature:'°C',humidity:'%',pressure:'hPa'};
+      const daily = Object.fromEntries(Object.entries(series).map(([metric,sensors]) => [metric,sensors.map(anchors => Array.from({length:184},(_,day) => {
+        const position = day/lastDay*(anchors.length-1);
+        const index = Math.min(anchors.length-2,Math.floor(position));
+        return Math.round((anchors[index]+(anchors[index+1]-anchors[index])*(position-index)+Math.sin(day*1.7)*0.8)*10)/10;
+      }))]));
+      function values(index) {
+        return daily[root.querySelector('.metric').value][index].slice(Math.max(0,Math.ceil(state.start)),Math.min(lastDay,Math.floor(state.end))+1);
+      }
+      function chart(index, large) {
+        const metric = root.querySelector('.metric').value;
+        const all = daily[metric].flat();
+        const minimum = Math.floor(Math.min(...all)/5)*5-5;
+        const maximum = Math.ceil(Math.max(...all)/5)*5+5;
+        const height = large ? Math.max(180,content.clientHeight) : (state.density === 'compact' ? 90 : 120);
+        const width = Math.max(240, content.clientWidth - (large ? 24 : 58));
+        const left = 45, right = width-(large?45:8), top = 22, bottom = height-25;
+        if (large) detailGeometry = {left,right,width};
+        const points = i => values(i).map((v,j) => `${left+(Math.max(0,Math.ceil(state.start))+j-state.start)/(state.end-state.start)*(right-left)},${bottom-(v-minimum)/(maximum-minimum)*(bottom-top)}`).join(' ');
+        let cursor = '';
+        if (large && state.inspected !== null && state.inspected >= state.start && state.inspected <= state.end) {
+          const x = (left+right)/2;
+          const sources = state.compare ? [index,index===2?0:2] : [index];
+          cursor = `<line class="cursor-line" x1="${x}" x2="${x}" y1="${top}" y2="${bottom}"/>`+sources.map(i => `<circle class="cursor-mark" cx="${x}" cy="${bottom-(daily[metric][i][state.inspected]-minimum)/(maximum-minimum)*(bottom-top)}" r="4"/>`).join('');
+        }
+        return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Illustrative ${metric} trend for ${escapeMarkup(names[index])}. Fixed center cursor. Drag the chart to inspect samples; pinch to zoom around the cursor."><text x="0" y="12">${units[metric]}</text><line class="grid" x1="${left}" y1="${top}" x2="${right}" y2="${top}"/><line class="grid" x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}"/><text x="${left-6}" y="${top+4}" text-anchor="end">${maximum}</text><text x="${left-6}" y="${bottom+4}" text-anchor="end">${minimum}</text><polyline class="trend" points="${points(index)}"/>${large && state.compare ? `<polyline class="trend comparison" points="${points(index===2?0:2)}"/>` : ''}${cursor}<text x="${left}" y="${height-4}">${dateLabel(state.start)}</text><text x="${right}" y="${height-4}" text-anchor="end">${dateLabel(state.end)}</text></svg>`;
+      }
+      function render() {
+        const detail = state.selected !== null;
+        const route = detail ? `sensor-${state.selected}` : 'overview';
+        if (updateRoute !== route) {
+          updateRoute = route;
+          clearTimeout(updateTimer);
+          root.querySelector('.status').textContent = detail ? 'Updating sensor… · demo' : 'Updating saved sensors… · demo';
+          updateTimer = setTimeout(() => {
+            root.querySelector('.status').textContent = detail ? (state.selected===2?'Sensor unreachable · saved history shown · demo':'Update complete · demo') : `${visibleSensors.length-(visibleSensors.includes(2)?1:0)} updated${visibleSensors.includes(2)?' · '+names[2]+' unreachable · saved data shown':''} · demo`;
+          },1600);
+        }
+        if (detail) {
+          const span = state.end-state.start;
+          state.inspected = Math.max(0,Math.min(lastDay,Math.round((state.start+state.end)/2)));
+          state.start = state.inspected-span/2;
+          state.end = state.inspected+span/2;
+        }
+        root.querySelector('.phone').classList.toggle('detail',detail);
+        root.querySelector('.prototype-label').hidden = detail;
+        root.querySelector('.time-dock').hidden = true;
+        root.querySelector('.overlay-bar').hidden = !detail;
+        root.querySelector('.detail-legend').hidden = !detail || !state.compare;
+        root.querySelector('.detail-legend').textContent = detail && state.compare ? `— ${names[state.selected]} · – – ${names[state.selected===2?0:2]}` : '';
+        root.querySelector('.overlay-compare').setAttribute('aria-pressed',String(state.compare));
+        root.querySelector('.overlay-compare').setAttribute('aria-label',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[state.selected===2?0:2])}`);
+        root.querySelector('.overlay-compare').setAttribute('data-tooltip',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[state.selected===2?0:2])}`);
+        const readout = root.querySelector('.sample-readout');
+        readout.hidden = !detail || state.inspected === null;
+        if (!readout.hidden) {
+          const sources = state.compare ? [state.selected,state.selected===2?0:2] : [state.selected];
+          readout.innerHTML = `<div>${dateLabel(state.inspected)} 2026 · 00:00 UTC · demo sample</div>`+sources.map(i => `<p>${escapeMarkup(names[i])}: ${daily.temperature[i][state.inspected]} °C · ${daily.humidity[i][state.inspected]} % · ${daily.pressure[i][state.inspected]} hPa</p>`).join('');
+        }
+        const timeParent = detail ? root.querySelector('.time-dock') : root.querySelector('header');
+        if (timeNavigation.parentElement !== timeParent) {
+          if (detail) timeParent.appendChild(timeNavigation);
+          else timeParent.insertBefore(timeNavigation,root.querySelector('.status'));
+        }
+        root.querySelector('.back').hidden = !detail && !externalBack;
+        root.querySelector('.back').setAttribute('aria-label',externalBack && (directEntry || !detail)?'Back to live':'Back to history overview');
+        root.querySelector('h2').textContent = detail ? names[state.selected] : 'History';
+        root.querySelector('.status').hidden = false;
+        root.querySelector('.dates').textContent = `${dateLabel(state.start)} – ${dateLabel(state.end)} 2026 · ${state.end-state.start+1} days`;
+        root.querySelector('.window').style.left = `${Math.max(0,state.start)/lastDay*100}%`;
+        root.querySelector('.window').style.width = `${(Math.min(lastDay,state.end)-Math.max(0,state.start))/lastDay*100}%`;
+        const metric = root.querySelector('.metric').value;
+        const summary = i => `Recorded min ${Math.min(...values(i))} ${units[metric]} · max ${Math.max(...values(i))} ${units[metric]}`;
+        if (detail) {
+          content.innerHTML = `<div class="detail-plot">${chart(state.selected,true)}</div>`;
+        } else {
+          content.innerHTML = names.map((name,i) => visibleSensors.includes(i) ? `<button class="sensor" type="button" data-sensor="${i}" aria-label="Open ${escapeMarkup(name)} history"><span class="sensor-head"><span>${escapeMarkup(name)}</span><span aria-hidden="true">→</span></span>${chart(i,false)}<span class="summary">${summary(i)}</span></button>` : '').join('');
+          content.querySelectorAll('[data-sensor]').forEach(button => { button.onclick = () => { state.selected = Number(button.dataset.sensor); state.compare = false; content.scrollTop = 0; render(); }; });
+        }
+      }
+      root.querySelector('.back').onclick = () => {
+        if (externalBack && (directEntry || state.selected === null)) { externalBack(); return; }
+        const span = Math.min(lastDay,Math.max(1,Math.round(state.end-state.start)));
+        state.start = Math.max(0,Math.min(lastDay-span,Math.round(state.start)));
+        state.end = state.start+span;
+        state.selected = null; state.compare = false; state.inspected = null; render();
+      };
+      root.querySelector('.overlay-compare').onclick = () => { state.compare = !state.compare; render(); };
+      root.querySelector('.metric').onchange = render;
+      function plotFraction(x) {
+        const bounds = content.querySelector('svg').getBoundingClientRect();
+        const local = (x-bounds.left)/bounds.width*detailGeometry.width;
+        return Math.max(0,Math.min(1,(local-detailGeometry.left)/(detailGeometry.right-detailGeometry.left)));
+      }
+      function setRange(start,span) {
+        span = Math.max(1,Math.min(lastDay,span));
+        const center = Math.max(0,Math.min(lastDay,Math.round(start+span/2)));
+        state.start = center-span/2;
+        state.end = state.start+span;
+        render();
+      }
+      const pointers = new Map();
+      let gesture = null;
+      function beginGesture(tapAllowed) {
+        const positions = [...pointers.values()];
+        if (!positions.length) { gesture = null; return; }
+        const x = positions.reduce((sum,p) => sum+p.x,0)/positions.length;
+        gesture = {start:state.start,span:state.end-state.start,x,y:positions[0].y,fraction:plotFraction(x),distance:positions.length>1?Math.max(1,Math.hypot(positions[1].x-positions[0].x,positions[1].y-positions[0].y)):0,moved:!tapAllowed};
+      }
+      content.onpointerdown = event => {
+        if (state.selected === null || event.button !== 0) return;
+        pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+        content.setPointerCapture(event.pointerId);
+        beginGesture(pointers.size===1);
+      };
+      content.onpointermove = event => {
+        if (!pointers.has(event.pointerId) || !gesture) return;
+        pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+        const positions = [...pointers.values()];
+        if (positions.length>1) {
+          gesture.moved = true;
+          const distance = Math.max(1,Math.hypot(positions[1].x-positions[0].x,positions[1].y-positions[0].y));
+          const span = Math.max(1,Math.min(lastDay,gesture.span*gesture.distance/distance));
+          setRange(gesture.start+gesture.span/2-span/2,span);
+        } else {
+          if (Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>6) gesture.moved = true;
+          if (gesture.moved) setRange(gesture.start+(gesture.fraction-plotFraction(event.clientX))*gesture.span,gesture.span);
+        }
+      };
+      function endPointer(event,cancelled) {
+        if (!pointers.has(event.pointerId)) return;
+        pointers.delete(event.pointerId);
+        beginGesture(false);
+      }
+      content.onpointerup = event => endPointer(event,false);
+      content.onpointercancel = content.onlostpointercapture = event => endPointer(event,true);
+      content.addEventListener('wheel',event => {
+        if (state.selected === null) return;
+        event.preventDefault();
+        const span = state.end-state.start;
+        if (Math.abs(event.deltaX)>Math.abs(event.deltaY)) setRange(state.start+event.deltaX/600*span,span);
+        else {
+          const next = Math.max(1,Math.min(lastDay,span*Math.exp(event.deltaY*0.004)));
+          setRange(state.start+span/2-next/2,next);
+        }
+      },{passive:false});
+      function moveWindow(kind, delta, start, end) {
+        if (kind === 'pan') {
+          const shift = Math.max(-start,Math.min(lastDay-end,delta));
+          state.start = start+shift;
+          state.end = end+shift;
+        } else if (kind === 'start') {
+          state.start = Math.max(0,Math.min(end-minimumSpan,start+delta));
+        } else {
+          state.end = Math.min(lastDay,Math.max(start+minimumSpan,end+delta));
+        }
+        render();
+      }
+      ['pan','start','end'].forEach(kind => {
+        const control = root.querySelector('.'+kind);
+        let drag = null;
+        control.onpointerdown = event => {
+          if (event.button !== 0) return;
+          drag = {x:event.clientX,start:state.start,end:state.end,width:root.querySelector('.timeline').getBoundingClientRect().width};
+          control.setPointerCapture(event.pointerId);
+        };
+        control.onpointermove = event => {
+          if (!drag) return;
+          moveWindow(kind,Math.round((event.clientX-drag.x)/drag.width*lastDay),drag.start,drag.end);
+        };
+        control.onpointerup = control.onpointercancel = control.onlostpointercapture = () => { drag = null; };
+        control.onkeydown = event => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          moveWindow(kind,(event.key === 'ArrowLeft' ? -1 : 1)*(event.shiftKey ? 7 : 1),state.start,state.end);
+        };
+      });
+      root.querySelector('.all-time').onclick = () => { state.start = 0; state.end = lastDay; render(); };
+      render();
+      root.historyPrototype = {
+        open(index,onBack,labels,available) {
+          labels.forEach((label,i) => { names[i] = label; });
+          visibleSensors = available;
+          externalBack = onBack;
+          directEntry = index !== null;
+          state.selected = index;
+          state.compare = false;
+          updateRoute = null;
+          render();
+        }
+      };
+      new ResizeObserver(render).observe(content);
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({container:root,onChange:render});
+        tweak.addSelect(state,'density',{label:'Overview chart density',options:['comfortable','compact']});
+      }
+    })();
+  </script>
+</div>
+</div>
+  <section class="editor" hidden></section>
+</div>
+<script>
+  (() => {
+    const root = document.getElementById('boat-navigation-prototype');
+    const live = document.getElementById('boat-live-wireframe');
+    const history = document.getElementById('boat-history-wireframe');
+    const historyContainer = root.querySelector('.history-container');
+    const editor = root.querySelector('.editor');
+    const cleanVariant = root.dataset.layout === 'clean';
+    let managing = false;
+    const sensors = [
+      {id:'cabin',broadcast:'Forward cabin',name:'Forward cabin',placement:'Above the wardrobe',photo:'sample',registered:true,history:0,age:'12 seconds',battery:86,values:[26.4,64,1013]},
+      {id:'outside',broadcast:'Outdoors',name:'Outdoors',placement:'Under the cockpit canopy',photo:null,registered:true,history:2,age:'2 hours',battery:42,values:[23.1,71,1013]},
+      {id:'battery',broadcast:'Battery temperature',name:'Battery temperature',placement:'',photo:null,registered:true,history:null,age:'20 seconds',battery:null,values:[31.2,null,null]},
+      {id:'nearby',broadcast:'SENE-7C2A',name:'SENE-7C2A',placement:'',photo:null,registered:false,history:1,age:'5 seconds',battery:73,values:[25.8,66,1013]}
+    ];
+    const escape = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let focusedSensor = null;
+    let imageDraft = null;
+    let editSession = 0;
+    function icons() { if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:18,height:18}}); }
+    function card(sensor) {
+      const title = sensor.registered ? sensor.name : sensor.broadcast;
+      const photo = sensor.photo === 'sample' ? '<div class="thumbnail" role="img" aria-label="Sample photo placeholder"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div>' : sensor.photo ? `<div class="thumbnail"><img src="${escape(sensor.photo)}" alt="Sensor photo"></div>` : '';
+      const heading = sensor.registered ? `<div class="identity"><div class="name-row"><h4>${escape(title)}</h4></div>${sensor.placement?`<p class="placement">${escape(sensor.placement)}</p>`:''}</div>` : `<h4>${escape(title)}</h4><span class="registration">Not registered</span>`;
+      const measurements = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
+      const battery = sensor.battery===null?'':`<span class="battery" aria-label="Sensor battery: ${sensor.battery} percent"><i data-lucide="${sensor.battery>75?'battery-full':'battery-medium'}" aria-hidden="true"></i><span>${sensor.battery}%</span></span>`;
+      const historyLabel = sensor.registered ? `<span class="history-label ${sensor.history===null?'live-only':''}">${sensor.history===null?'Live only':'History →'}</span>` : '';
+      const action = !sensor.registered || sensor.history!==null ? `<button class="card-action" type="button" data-open="${sensor.id}" aria-label="${sensor.registered?'Open history for':'Register'} ${escape(title)}"></button>` : '';
+      if(cleanVariant) {
+        if(managing) return `<article class="sensor"><div class="sensor-heading">${photo}${heading}</div><div class="management-actions"><button type="button" data-edit="${sensor.id}">${sensor.registered?'Edit':'Register'}</button><button type="button" data-info="${sensor.id}">Information</button></div></article>`;
+        const capability = !sensor.registered ? '' : sensor.history===null ? '<span class="history-label live-only">Live only</span>' : '<span class="history-label" aria-label="History available" data-tooltip="Open history"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>';
+        return `<article class="sensor"><div class="sensor-heading">${photo}${heading}${capability}</div><dl>${measurements}</dl><div class="sensor-status"><p class="received">Received ${sensor.age} ago</p>${battery}</div>${action}</article>`;
+      }
+      return `<article class="sensor"><div class="sensor-heading">${photo}${heading}</div><dl>${measurements}</dl>${historyLabel}<div class="sensor-status"><p class="received">Received ${sensor.age} ago</p>${battery}</div>${action}<button class="menu-toggle" type="button" data-menu="${sensor.id}" aria-label="Actions for ${escape(title)}">⋮</button></article>`;
+    }
+    function renderLive() {
+      const registered = sensors.filter(s => s.registered), nearby = sensors.filter(s => !s.registered);
+      live.querySelector('.phone').innerHTML = `<header><div class="top-row"><h2>Live</h2><button class="open-overview" type="button">History</button></div><p class="subtitle">Interactive wireframe · illustrative data</p></header><section><h3>Registered sensors · ${registered.length}</h3>${registered.map(card).join('')}</section>${nearby.length?`<section class="nearby"><h3>Other nearby sensors · ${nearby.length}</h3>${nearby.map(card).join('')}</section>`:''}<div class="menu-panel" role="dialog" aria-modal="true" aria-label="Sensor actions" hidden></div>`;
+      if(cleanVariant) {
+        live.querySelector('header').innerHTML = `<div class="top-row"><h2>${managing?'Sensors':'Live'}</h2><div class="top-actions">${managing?'':'<button class="open-overview" type="button">History</button>'}<button class="manage-all" type="button">${managing?'Done':'Manage'}</button></div></div><p class="subtitle">${managing?'Sensor names, placement and information':'Illustrative readings'}</p>`;
+        live.querySelector('.manage-all').onclick = () => { managing = !managing; renderLive(); live.querySelector('.manage-all').focus(); };
+        live.querySelectorAll('[data-edit]').forEach(button => { button.onclick = () => { focusedSensor = button.dataset.edit; openEditor(sensors.find(s => s.id===focusedSensor)); }; });
+        live.querySelectorAll('[data-info]').forEach(button => { button.onclick = () => { focusedSensor = button.dataset.info; openInfo(sensors.find(s => s.id===focusedSensor)); }; });
+      }
+      if(live.querySelector('.open-overview')) live.querySelector('.open-overview').onclick = () => openHistory(null);
+      live.querySelectorAll('[data-open]').forEach(button => { button.onclick = () => {
+        const sensor = sensors.find(s => s.id===button.dataset.open);
+        focusedSensor = sensor.id;
+        if(sensor.registered) openHistory(sensor.history); else openEditor(sensor);
+      }; });
+      live.querySelectorAll('[data-menu]').forEach(button => { button.onclick = () => openMenu(sensors.find(s => s.id===button.dataset.menu)); });
+      icons();
+    }
+    function showLive() {
+      editSession += 1;
+      editor.hidden = true; historyContainer.hidden = true; live.hidden = false;
+      renderLive();
+      const target = cleanVariant ? (managing?live.querySelector('.manage-all'):live.querySelector('.open-overview')) : focusedSensor ? live.querySelector(`[data-menu="${focusedSensor}"]`) : live.querySelector('.open-overview');
+      if(target) target.focus({preventScroll:true});
+    }
+    function openHistory(index) {
+      live.hidden = true; editor.hidden = true; historyContainer.hidden = false;
+      const labels = ['Forward cabin','SENE-7C2A','Outdoors'];
+      sensors.filter(s => s.history!==null).forEach(s => { labels[s.history] = s.name; });
+      history.historyPrototype.open(index,showLive,labels,sensors.filter(s => s.registered && s.history!==null).map(s => s.history));
+      history.querySelector('.back').focus({preventScroll:true});
+    }
+    function closeMenu() { live.querySelector('.menu-panel').hidden = true; live.querySelector(`[data-menu="${focusedSensor}"]`).focus({preventScroll:true}); }
+    function openMenu(sensor) {
+      focusedSensor = sensor.id;
+      const menu = live.querySelector('.menu-panel');
+      menu.innerHTML = `<h3>${escape(sensor.registered?sensor.name:sensor.broadcast)}</h3><button class="edit" type="button">${sensor.registered?'Edit local details':'Register sensor'}</button><button class="information" type="button">Sensor information</button><button class="close-menu" type="button">Close</button>`;
+      menu.hidden = false;
+      menu.querySelector('.edit').onclick = () => openEditor(sensor);
+      menu.querySelector('.information').onclick = () => openInfo(sensor);
+      menu.querySelector('.close-menu').onclick = closeMenu;
+      menu.querySelector('.edit').focus();
+    }
+    function openEditor(sensor) {
+      const session = ++editSession;
+      live.hidden = true; historyContainer.hidden = true; editor.hidden = false;
+      imageDraft = sensor.photo;
+      editor.innerHTML = `<button class="cancel" type="button">← Live</button><h2>${sensor.registered?'Edit sensor':'Register sensor'}</h2><form><label for="nav-name">Local name</label><input id="nav-name" name="localName" value="${escape(sensor.registered?sensor.name:sensor.broadcast)}"><p class="hint">Used only in this app. Leave blank to use the broadcast name.</p><label for="nav-placement">Placement · optional</label><input id="nav-placement" name="placement" value="${escape(sensor.placement)}" placeholder="For example, above the wardrobe"><label>Photo · optional</label><div class="photo-state"></div><div class="actions"><button class="choose-photo" type="button">Choose photo</button><button class="remove-photo" type="button">Remove photo</button></div><input class="photo-file" type="file" accept="image/*" aria-label="Choose sensor photo" hidden><p class="hint">Changes in this demo last only until it is reloaded.</p><div class="actions"><button class="save" type="button">${sensor.registered?'Save changes':'Register'}</button><button class="cancel" type="button">Cancel</button></div></form>`;
+      const preview = () => {
+        editor.querySelector('.photo-state').innerHTML = imageDraft==='sample'?'<p class="hint">Sample photo attached</p>':imageDraft?`<img class="photo-preview" src="${escape(imageDraft)}" alt="Selected sensor photo">`:'<p class="hint">No photo</p>';
+        editor.querySelector('.remove-photo').hidden = !imageDraft;
+      };
+      preview();
+      editor.querySelectorAll('.cancel').forEach(button => { button.onclick = showLive; });
+      editor.querySelector('.choose-photo').onclick = () => editor.querySelector('.photo-file').click();
+      editor.querySelector('.remove-photo').onclick = () => { imageDraft = null; preview(); };
+      editor.querySelector('.photo-file').onchange = event => {
+        const file = event.target.files[0];
+        if(!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = () => { if(editor.hidden || session!==editSession) return; imageDraft = reader.result; preview(); };
+        reader.readAsDataURL(file);
+      };
+      editor.querySelector('.save').onclick = event => {
+        event.preventDefault();
+        sensor.name = editor.querySelector('#nav-name').value.trim() || sensor.broadcast;
+        sensor.placement = editor.querySelector('#nav-placement').value.trim();
+        sensor.photo = imageDraft;
+        sensor.registered = true;
+        showLive();
+      };
+      editor.querySelector('#nav-name').focus({preventScroll:true});
+      if(cleanVariant && managing) editor.querySelector('.cancel').textContent = '← Sensors';
+    }
+    function openInfo(sensor) {
+      live.hidden = true; editor.hidden = false;
+      const row = (label,value) => `<div class="info-row"><dt>${label}</dt><dd>${escape(value)}</dd></div>`;
+      editor.innerHTML = `<button class="back-live" type="button">← Live</button><h2>Sensor information</h2><dl>${row('Broadcast name',sensor.broadcast)}${row('Local name',sensor.registered?sensor.name:'Not registered')}${row('Placement',sensor.placement||'Not set')}${row('History',sensor.history===null?'Not supported':'Supported')}${row('Last reception',sensor.age+' ago')}${row('Battery',sensor.battery===null?'Not reported':sensor.battery+'%')}</dl><p class="hint">Illustrative sensor information</p>`;
+      editor.querySelector('.back-live').onclick = showLive;
+      if(cleanVariant && managing) editor.querySelector('.back-live').textContent = '← Sensors';
+      editor.querySelector('.back-live').focus({preventScroll:true});
+    }
+    root.addEventListener('keydown',event => {
+      const menu = live.querySelector('.menu-panel');
+      if(live.hidden || !menu || menu.hidden) return;
+      if(event.key==='Escape') { event.preventDefault(); closeMenu(); }
+      if(event.key==='Tab') {
+        const buttons = [...menu.querySelectorAll('button')];
+        if(event.shiftKey && document.activeElement===buttons[0]) { event.preventDefault(); buttons[buttons.length-1].focus(); }
+        else if(!event.shiftKey && document.activeElement===buttons[buttons.length-1]) { event.preventDefault(); buttons[0].focus(); }
+      }
+    });
+    renderLive();
+  })();
+</script>
