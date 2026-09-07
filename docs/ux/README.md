@@ -1,15 +1,15 @@
 # UX design
 
-Status: discovery in progress.
+Status: approved core screens connected in the current interactive prototype; remaining design details are tracked separately.
 
 This directory tracks the UI and UX redesign on branch `ux`. Documentation is written in English; discovery conversations may be in Italian.
 
 ## Working documents
 
-- [Revised live screen](live-v2.md): current screen-by-screen iteration in `wireframes/live-v2.html`. The earlier connected prototype is retained without rebuilding it.
-- [Sensor page](sensor-page-v2.md): next individual-screen proposal in `wireframes/sensor-detail-v2.html`, with readings, status, history/registration entry, and immediately visible identification information.
+- [Revised live screen](live-v2.md): approved layout in `wireframes/live-v2.html`, now used by the connected prototype.
+- [Sensor page](sensor-page-v2.md): approved individual-screen layout in `wireframes/sensor-detail-v2.html`, now connected, with readings, status, history/registration entry, and immediately visible identification information.
 - [First history access](history-empty-states.md): loading, unreachable-sensor, and empty-history presentation when no local history exists, in `wireframes/history-first-download.html`.
-- [Grouped small states](history-empty-states.md#grouped-state-review): loading, empty/error, saved-data updates, and Bluetooth/permission proposals together in `wireframes/history-state-board.html`.
+- [Grouped small states](history-empty-states.md#grouped-state-review): loading, empty/error, saved-data updates, and approved Bluetooth/permission states together in `wireframes/history-state-board.html`.
 - [Registration and editing](registration-v2.md): superseded separate-editor experiment. The current sensor-page wireframe edits fields through individual dialogs and handles photo selection directly.
 - [Live simplification experiment](live-simplification.md): rejected alternative, retained for reference. The active prototype is `wireframes/prototype.html`.
 - [Connected prototype](prototype.md): entry point, implemented navigation paths, review choices, and verification. The current integrated preview is `wireframes/prototype.html`.

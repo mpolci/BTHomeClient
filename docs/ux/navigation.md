@@ -1,50 +1,45 @@
 # Navigation and task flows
 
-Status: connecting the agreed screen designs. Confirmed destinations are distinguished from proposals below.
+Status: current direction reflected in the connected prototype as of 2026-09-07. See [prototype](prototype.md) for implemented paths and limitations.
 
 ## Entry points
 
-| Trigger | Destination / behavior | Status |
+| Trigger | Destination / behavior | Basis |
 | --- | --- | --- |
-| Tap a registered sensor with history support | Open that sensor's history, without first visiting sensor information. | Confirmed in D20. |
-| Access sensor information | A secondary entry point for infrequent use. | Priority confirmed; the proposed card overflow menu is not yet approved. |
-| Tap an unregistered sensor | Open registration with the broadcast name prefilled when available. | Direct tap entry is proposed; name prefill is confirmed. |
-| Open history from general navigation | Show the multi-sensor overview and automatically update all compatible saved sensors. | Global navigation placement is proposed; overview and download behavior are confirmed. |
+| Tap any live sensor card | Sensor page with compact readings and immediately visible identification/status. | D23, D24, D30, D31. Replaces direct live-card-to-history navigation. |
+| Select History on the sensor page | Individual landscape history and automatic update. | D21, D24. Offered for compatible registered sensors. |
+| Select general History from live | Multi-sensor overview and automatic updates for compatible registered sensors. | D21. Exact global button placement remains a prototype choice. |
+| Tap a pencil | Single-field local-name or placement dialog. | D25, D26. |
+| Tap a photo or Add photo | Local image selection. | D25. |
+| Select Register sensor | Register using the broadcast name, stay on the sensor page, and reveal editing. | D25, D30. |
+| Select Remove sensor | Confirmation explaining loss of local metadata and downloaded history. | D29 and reviewed removal wireframe. |
 
-## Registered sensor to history
+## Return paths
 
-1. The owner taps a registered sensor in the live overview.
-2. If it supports internal history, open its individual history view. Start updating automatically on entry without a separate download action, retaining saved history when the sensor is unreachable. See the update flow below.
-3. The owner pans beneath the fixed cursor, zooms around it, or compares with another sensor.
-4. Back returns to the originating live view. Entry from the history overview must instead return there.
+History entered from a sensor returns there; a chart entered from the overview returns to the overview. Leaving the overview or sensor page returns to live. Field-dialog Cancel or Escape leaves the field unchanged; Save updates only that field.
 
-The direct history destination is confirmed. The [connected prototype](prototype.md) now implements both return paths using the standalone history wireframe's navigation interface. Final back-state restoration and the initial measurement/time range remain to be designed.
+No overflow menu or separate metadata editor is needed. History capability labels on live cards were superseded by the uniform sensor-page destination; history support is visible on that page.
 
-## Automatic update on entry
+## Automatic history update
 
-Confirmed in D21: opening a sensor's history initiates its download immediately. If the sensor is unreachable, proceed to viewing already downloaded data. A separate per-sensor download action should not be needed.
+Opening the sensor page does not initiate a download or display a chart. Opening history does. Existing downloaded data remains immediately consultable during attempts and when updates fail.
 
-Agreed interaction direction: display existing history immediately while the update runs, with compact progress/status feedback. On success, refresh available data without resetting the user's current time window or cursor. This avoids making existing history inaccessible during a connection attempt.
-
-| Available local history | Update result | Proposed presentation |
+| Local data | Update outcome | Presentation |
 | --- | --- | --- |
-| Present | In progress | Existing chart remains usable with an updating indication. |
-| Present | Successful | Updated history, with the user's exploration state preserved. |
-| Present | Sensor unreachable or transfer failed | Keep saved history visible and briefly report that it could not be updated. |
-| Absent | In progress | Initial download progress instead of an empty chart. |
-| Absent | Sensor unreachable or transfer failed | Explicit no-downloaded-history state, with the reason the update could not finish. |
-| Absent | Successful, but sensor history empty | Explicit no-recorded-history state, distinct from an unsuccessful download. |
+| Present | Updating | Keep chart, period and cursor usable; show concise progress. |
+| Present | Successful | Refresh data without resetting exploration. |
+| Present | Unreachable/interrupted | Keep saved data and show feedback with retry. |
+| Absent | Connecting/downloading | Show progress, not a blank chart. |
+| Absent | Unreachable/interrupted | Explain the absence of local data and failure, with retry. |
+| Absent | Successful but empty | Explain that no measurements were recorded. |
 
-Live-advertisement age alone must not be treated as proof that a history connection will succeed or fail. The proposed fallback depends on actual download availability/result.
+Bluetooth or permission problems offer user-initiated enable/access/settings actions without blocking saved data. A stale advertisement is not proof of connection failure; the prototype's unreachable outcome is explicitly simulated.
 
-The owner confirmed that opening the general history overview automatically updates all compatible saved sensors. This supersedes the explicit bulk command in D6; R12 now reflects D21. Download-on-entry retry/cancellation rules and timeout behavior remain to be designed; do not infer continuous background synchronization.
+## Remaining design work
 
-## Cases to resolve before linking the prototype
+- Final native back/rotation, scroll restoration, permission wording, transfer cancellation, timeout, and retry behavior.
+- Unknown capabilities, partial live advertisements, historical gaps/undated samples, and retention controls.
+- Whether unregistered sensors should ever access history without registration; the current flow registers first.
+- Device control/security and optional critical-period highlights.
 
-- **No internal history support:** registered cards display `Live only`, while compatible cards display `History →` beside the name (D22). Live-only cards have no history-opening action; secondary management access remains to be finalized. Do not imply history can be built from live readings.
-- **History supported but not downloaded:** opening history should initiate the first download; its empty/progress states remain to be designed and must be distinct from unsupported history.
-- **Sensor not currently received:** downloaded history remains useful independently of live reception; design any download-unavailable feedback separately.
-- **Capabilities unknown:** decide how to communicate uncertainty without falsely claiming history support.
-- **Secondary management:** choose the entry point for information, local metadata editing, and registration removal.
-
-The owner authorized connecting the wireframes and adding secondary menus. The first implementation for review is described in [connected prototype](prototype.md). Work remains within UX documentation and wireframes; production app changes are not part of this step.
+These flows are UX artifacts. No production app behavior is changed by updating them.

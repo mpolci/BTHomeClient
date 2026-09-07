@@ -1,0 +1,167 @@
+<div id="boat-prototype-v2" data-connected>
+  <style>
+    #boat-prototype-v2 [hidden] { display:none !important; }
+    #boat-live-v2-wireframe .live-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    #boat-live-v2-wireframe .open-overview, #boat-live-v2-wireframe .fix-gate { min-height:44px; padding:8px 12px; font:inherit; border:1px solid var(--live-border); border-radius:8px; background:var(--live-card); color:var(--live-ink); cursor:pointer; }
+    #boat-live-v2-wireframe .sensor { position:relative; }
+    #boat-live-v2-wireframe .card-action { position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:10px; background:transparent; cursor:pointer; }
+    #boat-live-v2-wireframe button:focus-visible { outline:2px solid var(--live-ink); outline-offset:2px; }
+    #boat-live-v2-wireframe .thumbnail img { width:100%; height:100%; object-fit:cover; }
+    #boat-live-v2-wireframe .gate { padding:12px; margin:12px 0; border:1px solid var(--live-border); border-radius:8px; }
+    #boat-live-v2-wireframe .gate p { font-size:13px; margin:0 0 8px; }
+    #boat-live-v2-wireframe .empty-live { padding:24px 0; }
+  </style>
+  <!-- LIVE_V2 -->
+  <div class="sensor-screen" hidden><!-- SENSOR_V2 --></div>
+  <div class="history-screen" hidden><!-- HISTORY --></div>
+</div>
+<script>
+  (() => {
+    const root = document.getElementById('boat-prototype-v2');
+    const live = document.getElementById('boat-live-v2-wireframe');
+    const page = document.getElementById('boat-sensor-detail-v2');
+    const history = document.getElementById('boat-history-wireframe');
+    const sensorScreen = root.querySelector('.sensor-screen');
+    const historyScreen = root.querySelector('.history-screen');
+    const settings = {transport:'ready',outcome:'normal',elapsedMinutes:0};
+    const sensors = [
+      {id:'cabin',name:'Forward cabin',broadcast:'SENE-1A2B',placement:'Above the wardrobe',photo:true,registered:true,history:true,historyIndex:0,downloadedHistoryPresent:true,battery:86,ageSeconds:12,address:'AA:BB:CC:DD:EE:01',values:[26.4,64,1013]},
+      {id:'outside',name:'Outdoors',broadcast:'Outdoors',placement:'Under the cockpit canopy',photo:false,registered:true,history:true,historyIndex:2,downloadedHistoryPresent:true,battery:42,ageSeconds:7200,address:'AA:BB:CC:DD:EE:02',values:[23.1,71,1013]},
+      {id:'battery',name:'Battery temperature',broadcast:'Battery temperature',placement:'',photo:false,registered:true,history:false,historyIndex:null,downloadedHistoryPresent:false,battery:null,ageSeconds:20,address:'AA:BB:CC:DD:EE:03',values:[31.2,null,null]},
+      {id:'nearby',name:'SENE-7C2A',broadcast:'SENE-7C2A',placement:'',photo:false,registered:false,history:true,historyIndex:1,downloadedHistoryPresent:false,battery:73,ageSeconds:5,address:'AA:BB:CC:DD:EE:04',values:[25.8,66,1013]}
+    ];
+    const escape = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const byIndex = index => sensors.find(sensor => sensor.historyIndex===index);
+    const available = () => sensors.filter(sensor => sensor.registered && sensor.history).map(sensor => sensor.historyIndex);
+    const elapsed = sensor => sensor.ageSeconds+settings.elapsedMinutes*60;
+    const ageText = sensor => {
+      const seconds = elapsed(sensor);
+      if(seconds<60) return `${Math.floor(seconds)} seconds ago`;
+      if(seconds<3600) return `${Math.floor(seconds/60)} minutes ago`;
+      return `${Math.floor(seconds/3600)} hours ago`;
+    };
+    let route = 'live';
+    let activeSensor = null;
+    let activeHistoryIndex = null;
+    let generation = 0;
+    let timers = [];
+    const phases = new Map();
+    function cancelUpdates() { generation += 1; timers.forEach(clearTimeout); timers = []; }
+    function icons() { if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:18,height:18}}); }
+    function gate() {
+      if(settings.transport==='bluetooth') return {title:'Turn on Bluetooth',description:'Bluetooth is needed to receive readings and download history.',action:'Turn on Bluetooth'};
+      if(settings.transport==='permission') return {title:'Allow nearby devices',description:'Allow access to receive sensor readings and download history.',action:'Allow access'};
+      if(settings.transport==='settings') return {title:'Nearby devices access is disabled',description:'Restore nearby-device access in app settings.',action:'Open settings'};
+      return null;
+    }
+    function card(sensor) {
+      const name = sensor.registered?sensor.name:sensor.broadcast;
+      const photo = !sensor.photo?'':`<div class="thumbnail" role="img" aria-label="Sensor photo">${typeof sensor.photo==='string'?`<img src="${escape(sensor.photo)}" alt="Sensor photo">`:'<i data-lucide="image" aria-hidden="true"></i><span>Photo</span>'}</div>`;
+      const battery = sensor.battery===null?'':`<span class="battery" role="img" aria-label="Sensor battery: ${sensor.battery>75?'high':'medium'}"><i data-lucide="${sensor.battery>75?'battery-full':'battery-medium'}" aria-hidden="true"></i></span>`;
+      const heading = sensor.registered?`<div class="identity"><h4>${escape(name)}</h4>${sensor.placement?`<p class="placement">${escape(sensor.placement)}</p>`:''}</div>`:`<h4>${escape(name)}</h4><span class="registration">Not registered</span>`;
+      const values = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
+      return `<article class="sensor"><div class="sensor-heading">${photo}${heading}${battery}</div><dl>${values}</dl>${elapsed(sensor)>=300?`<div class="sensor-status"><p class="received">Received ${ageText(sensor)}</p></div>`:''}<button class="card-action" type="button" data-sensor="${sensor.id}" aria-label="Open sensor ${escape(name)}"></button></article>`;
+    }
+    function renderLive() {
+      const registered = sensors.filter(sensor => sensor.registered);
+      const detected = sensors.filter(sensor => !sensor.registered && elapsed(sensor)<300);
+      const blocked = gate();
+      live.querySelector('.phone').innerHTML = `<header><div class="live-bar"><h2>Live</h2><button class="open-overview" type="button">History</button></div><p class="subtitle">Interactive prototype · illustrative data</p></header>${blocked?`<div class="gate" role="status"><p>${escape(blocked.description)} Saved data remains available.</p><button class="fix-gate" type="button">${blocked.action}</button></div>`:''}${registered.length?`<section><h3>Registered sensors · ${registered.length}</h3>${registered.map(card).join('')}</section>`:''}${detected.length?`<section class="nearby"><h3>Other nearby sensors · ${detected.length}</h3>${detected.map(card).join('')}</section>`:''}${!registered.length && !detected.length?'<p class="empty-live">No sensors received yet.</p>':''}`;
+      live.querySelector('.open-overview').onclick = () => openHistory(null);
+      live.querySelectorAll('[data-sensor]').forEach(button => { button.onclick = () => openSensor(sensors.find(sensor => sensor.id===button.dataset.sensor)); });
+      const fix = live.querySelector('.fix-gate');
+      if(fix) fix.onclick = () => { settings.transport = 'ready'; renderLive(); };
+      icons();
+    }
+    function showLive() {
+      cancelUpdates(); history.historyPrototype.close(); page.sensorPagePrototype.close();
+      route = 'live'; live.hidden = false; sensorScreen.hidden = true; historyScreen.hidden = true;
+      renderLive();
+      const button = activeSensor?live.querySelector(`[data-sensor="${activeSensor.id}"]`):live.querySelector('.open-overview');
+      if(button) button.focus({preventScroll:true});
+    }
+    function openSensor(sensor) {
+      cancelUpdates(); history.historyPrototype.close();
+      activeSensor = sensor; sensor.age = ageText(sensor);
+      route = 'sensor'; live.hidden = true; sensorScreen.hidden = false; historyScreen.hidden = true;
+      page.sensorPagePrototype.open(sensor,showLive,selected => openHistory(selected.historyIndex));
+      page.querySelector('.back').focus({preventScroll:true});
+    }
+    function status(index) {
+      const blocked = gate(); if(blocked) return blocked.title;
+      if(index===null) {
+        const targets = available();
+        if(!targets.length) return 'No compatible saved sensors';
+        if(targets.some(i => ['connecting','downloading'].includes(phases.get(i)))) return 'Updating saved sensors…';
+        const failed = targets.filter(i => ['unreachable','interrupted'].includes(phases.get(i))).length;
+        return failed?`${failed} update${failed===1?'':'s'} failed · saved data kept`:'History update complete';
+      }
+      const phase = phases.get(index);
+      const cached = byIndex(index)?.downloadedHistoryPresent;
+      if(phase==='connecting') return 'Connecting to sensor…';
+      if(phase==='downloading') return 'Downloading history · 40%';
+      if(phase==='unreachable') return cached?'Sensor unreachable · saved history shown':'No downloaded history · sensor unreachable';
+      if(phase==='interrupted') return cached?'Update interrupted · saved history shown':'Download interrupted';
+      if(phase==='empty') return cached?'No new measurements · saved history shown':'No measurements recorded';
+      return cached?'History up to date':'No downloaded history yet';
+    }
+    function presentation(index) {
+      const blocked = gate(); if(blocked) return blocked;
+      const phase = index===null?null:phases.get(index);
+      if(phase==='connecting') return {title:'Getting your history',description:'Connecting to the sensor…',loading:true};
+      if(phase==='downloading') return {title:'Downloading history',description:'40% · keep your phone near the sensor.',loading:true};
+      if(phase==='empty') return {title:'No measurements recorded',description:'The sensor was reached, but its history contains no measurements.'};
+      if(phase==='unreachable') return {title:'No downloaded history yet',description:'The sensor could not be reached. Move closer and try again.',action:'Try again'};
+      if(phase==='interrupted') return {title:'Download interrupted',description:'The transfer did not finish. Try again to retrieve the history.',action:'Try again'};
+      if(index===null && available().some(i => ['unreachable','interrupted'].includes(phases.get(i)))) return {action:'Try again'};
+      return {title:'No downloaded history yet',description:''};
+    }
+    function startUpdate(index) {
+      cancelUpdates(); activeHistoryIndex = index;
+      const token = generation;
+      const targets = index===null?available():[index];
+      targets.forEach(i => phases.set(i,'connecting'));
+      if(gate()) return;
+      targets.forEach(i => {
+        const sensor = byIndex(i);
+        const outcome = settings.outcome==='normal'?(sensor.id==='outside'?'unreachable':'success'):settings.outcome;
+        timers.push(setTimeout(() => {
+          if(token!==generation || route!=='history') return;
+          phases.set(i,outcome==='unreachable'?'unreachable':'downloading');
+          history.historyPrototype.refresh();
+        },500));
+        timers.push(setTimeout(() => {
+          if(token!==generation || route!=='history') return;
+          phases.set(i,outcome);
+          if(outcome==='success') sensor.downloadedHistoryPresent = true;
+          history.historyPrototype.refresh();
+        },1500));
+      });
+    }
+    function retry(index) { if(gate()) settings.transport = 'ready'; startUpdate(index); history.historyPrototype.refresh(); }
+    function openHistory(index) {
+      page.sensorPagePrototype.close();
+      route = 'history'; live.hidden = true; sensorScreen.hidden = true; historyScreen.hidden = false;
+      const labels = ['Forward cabin','SENE-7C2A','Outdoors'];
+      sensors.filter(sensor => sensor.history).forEach(sensor => { labels[sensor.historyIndex] = sensor.name; });
+      const origin = index===null?null:byIndex(index);
+      history.historyPrototype.open(index,() => origin?openSensor(origin):(activeSensor=null,showLive()),labels,available(),{
+        backLabel:origin?'Back to sensor':'Back to live',
+        hasData:i => Boolean(byIndex(i)?.registered && byIndex(i)?.downloadedHistoryPresent),
+        enter:startUpdate,status,presentation,retry
+      });
+      history.querySelector('.back').focus({preventScroll:true});
+    }
+    renderLive(); history.historyPrototype.close();
+    if(globalThis.Tweak) {
+      const tweak = new Tweak({container:root,onChange:() => {
+        if(route==='history') { startUpdate(activeHistoryIndex); history.historyPrototype.refresh(); }
+        else if(route==='live') renderLive();
+        else if(activeSensor) openSensor(activeSensor);
+      }});
+      tweak.addSelect(settings,'transport',{label:'Demo Bluetooth / permission',options:[{label:'Available',value:'ready'},{label:'Bluetooth off',value:'bluetooth'},{label:'Permission missing',value:'permission'},{label:'Permission denied in settings',value:'settings'}]});
+      tweak.addSelect(settings,'outcome',{label:'Demo history result',options:[{label:'Normal (outdoor unreachable)',value:'normal'},{label:'Sensor unreachable',value:'unreachable'},{label:'Sensor history empty',value:'empty'},{label:'Transfer interrupted',value:'interrupted'}]});
+      tweak.addSlider(settings,'elapsedMinutes',{label:'Demo minutes without updates',min:0,max:10,step:1,unit:'min'});
+    }
+  })();
+</script>

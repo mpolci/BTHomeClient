@@ -1,6 +1,6 @@
 # Sensor page — first screen wireframe
 
-Status: the displayed registered-sensor layout was approved on 2026-09-07 (D24), following D23. It is not wired into the connected prototype.
+Status: the displayed registered-sensor layout was approved on 2026-09-07 (D24), following D23. It is now used by the connected prototype.
 
 ## Information order
 
@@ -20,7 +20,7 @@ The unregistered example and its registration flow were approved in D30. It expo
 
 The registered live-only example was approved in D31 and remains the starting example in this wireframe. This example reports only a temperature and no battery charge, so other measurements and the battery indicator are absent. History support is explicitly unavailable, and there is no history-opening action. Local metadata editing and registration removal remain available. Preview starting states are not app launch behavior.
 
-Sensor information is always visible, without an expansion action. The updated wireframe implements individual field editing and registration locally, without linking other screens. History navigation remains represented visually only.
+Sensor information is always visible, without an expansion action. The standalone wireframe implements individual field editing and registration locally. The current connected prototype also links live and history navigation through this page.
 
 ## Editing in place
 
@@ -40,4 +40,4 @@ A secondary `Remove sensor` action appears at the bottom of a registered sensor'
 
 Confirmation removes only the example's local registration metadata and simulated downloaded-history state. The sample remains on screen as an unregistered, still-advertising sensor, with its broadcast identity, measurements, capabilities, and Register action. Re-registering does not restore the deleted example history. The location/wording of the action and this post-removal presentation are proposals for review; the real app's list expiry rules still apply.
 
-The interaction was checked in JavaScriptCore with a simulated DOM: open/cancel, targeted removal, unchanged broadcast identity/capability, cleared local metadata/history state, re-registration, and Escape cancellation. The wireframe does not access or delete real sensor data, and history opening remains a visual placeholder.
+The interaction was checked in JavaScriptCore with a simulated DOM: open/cancel, targeted removal, unchanged broadcast identity/capability, cleared local metadata/history state, re-registration, and Escape cancellation. The wireframe does not access or delete real sensor data, and history opening remains a visual placeholder only in the standalone screen; the connected prototype wires it to history.

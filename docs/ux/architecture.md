@@ -28,8 +28,8 @@ These groups do not prescribe tabs or separate screens. Navigation will follow t
 ## Draft task sequences
 
 - **Guest live consultation (S4):** Open app → resolve required platform/Bluetooth prerequisites if needed → receive nearby broadcasts → read values identified by broadcast names. The owner considers these names sufficient; local registration is not a prerequisite.
-- **Owner live comparison (S1):** Open app → see all sensors together with current conditions and freshness → compare relevant spaces or sources → tap a registered source to open its history when supported. Sensor information is secondary; see [navigation](navigation.md) for unresolved cases.
-- **Return after absence (S2):** Access history → understand available coverage → automatically update all compatible saved sensors while existing history stays viewable → review updated coverage and per-sensor outcomes → review the requested period → select a moment of interest → inspect its measurements and context. The overview spans multiple sensors. Per-sensor outcome presentation remains a proposal; automatic update on entry is confirmed.
+- **Owner live comparison (S1):** Open app → see all sensors together with current conditions and freshness → compare relevant spaces or sources → tap any source to open its sensor page, with a separate history action when supported; see [navigation](navigation.md) for unresolved cases.
+- **Return after absence (S2):** Access history → understand available coverage → automatically update all compatible saved sensors while existing history stays viewable → review updated coverage and per-sensor outcomes → review the requested period → select a moment of interest → inspect its measurements and context. The overview spans multiple sensors. Grouped update/empty/error states are approved in D32; automatic update on history entry is confirmed.
 
 These are discussion sketches, not complete user flows. Permission denial, unavailable sensors, partial downloads, missing/undated samples, and empty history will be expanded after the main interactions are agreed.
 

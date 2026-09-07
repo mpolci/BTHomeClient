@@ -1,102 +1,69 @@
-<div id="boat-navigation-prototype">
+<div id="boat-prototype-v2" data-connected>
   <style>
-    #boat-navigation-prototype { --nav-bg:light-dark(#fafafa,#202020); --nav-ink:light-dark(#242424,#ededed); --nav-border:light-dark(#c7c7c7,#626262); color:var(--nav-ink); font:14px system-ui,sans-serif; }
-    #boat-navigation-prototype [hidden] { display:none !important; }
-    #boat-navigation-prototype button, #boat-navigation-prototype input { font:inherit; color:var(--nav-ink); background:var(--nav-bg); border:1px solid var(--nav-border); border-radius:8px; min-height:44px; padding:8px 10px; }
-    #boat-navigation-prototype button { cursor:pointer; }
-    #boat-navigation-prototype button:focus-visible { outline:2px solid var(--nav-ink); outline-offset:2px; }
-    #boat-navigation-prototype .editor { max-width:390px; margin:auto; padding:16px; border:1px solid var(--nav-border); border-radius:20px; background:var(--nav-bg); }
-    #boat-navigation-prototype .editor h2 { font-size:22px; font-weight:500; }
-    #boat-navigation-prototype .editor label { display:block; margin:18px 0 6px; }
-    #boat-navigation-prototype .editor input:not([type=file]) { display:block; box-sizing:border-box; width:100%; font-size:16px; }
-    #boat-navigation-prototype .editor .hint { font-size:12px; margin:6px 0; }
-    #boat-navigation-prototype .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
-    #boat-navigation-prototype .photo-preview { width:64px; height:64px; object-fit:cover; border:1px solid var(--nav-border); border-radius:8px; margin:8px 0; }
-    #boat-navigation-prototype .info-row { padding:12px 0; border-bottom:1px solid var(--nav-border); }
-    #boat-navigation-prototype .info-row dt { font-size:12px; margin-bottom:4px; }
-    #boat-navigation-prototype .info-row dd { margin:0; overflow-wrap:anywhere; }
-    #boat-live-wireframe .top-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-    #boat-live-wireframe .phone { position:relative; }
-    #boat-live-wireframe .sensor { position:relative; }
-    #boat-live-wireframe .sensor-heading { padding-right:34px; }
-    #boat-live-wireframe .menu-toggle { position:absolute; top:4px; right:3px; z-index:2; width:40px; padding:8px; background:transparent; border:0; font-size:22px; }
-    #boat-live-wireframe .card-action { position:absolute; inset:0; z-index:1; width:100%; height:100%; background:transparent; border:0; border-radius:10px; }
-    #boat-live-wireframe .card-action:focus-visible { outline-offset:2px; }
-    #boat-live-wireframe .thumbnail img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
-    #boat-live-wireframe .menu-panel { position:absolute; z-index:5; top:70px; left:16px; right:16px; padding:16px; background:var(--live-card); border:1px solid var(--live-border); border-radius:12px; box-shadow:0 0 0 100vmax light-dark(#00000022,#00000055); }
-    #boat-live-wireframe .menu-panel h3 { margin:0 0 10px; }
-    #boat-live-wireframe .menu-panel button { display:block; width:100%; margin:6px 0; text-align:left; }
-    #boat-live-wireframe .history-label { font-size:11px; }
-    #boat-navigation-prototype[data-layout="clean"] .sensor { border:0; border-bottom:1px solid var(--live-border); border-radius:0; background:transparent; padding:16px 0; margin:0; }
-    #boat-navigation-prototype[data-layout="clean"] .sensor-heading { padding-right:0; }
-    #boat-navigation-prototype[data-layout="clean"] .nearby { border-top:0; }
-    #boat-navigation-prototype[data-layout="clean"] .sensor-status { margin-top:10px; }
-    #boat-navigation-prototype[data-layout="clean"] dl { margin-top:10px; }
-    #boat-navigation-prototype[data-layout="clean"] .sensor dl dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
-    #boat-navigation-prototype[data-layout="clean"] .sensor dd { font-size:22px; }
-    #boat-navigation-prototype[data-layout="clean"] .history-label { margin:0; display:inline-flex; align-items:center; justify-content:center; min-width:28px; min-height:28px; }
-    #boat-navigation-prototype[data-layout="clean"] .history-label svg { width:20px; height:20px; }
-    #boat-navigation-prototype[data-layout="clean"] .top-actions { display:flex; gap:6px; }
-    #boat-navigation-prototype[data-layout="clean"] .management-actions { display:flex; gap:8px; margin-top:10px; }
+    #boat-prototype-v2 [hidden] { display:none !important; }
+    #boat-live-v2-wireframe .live-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    #boat-live-v2-wireframe .open-overview, #boat-live-v2-wireframe .fix-gate { min-height:44px; padding:8px 12px; font:inherit; border:1px solid var(--live-border); border-radius:8px; background:var(--live-card); color:var(--live-ink); cursor:pointer; }
+    #boat-live-v2-wireframe .sensor { position:relative; }
+    #boat-live-v2-wireframe .card-action { position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:10px; background:transparent; cursor:pointer; }
+    #boat-live-v2-wireframe button:focus-visible { outline:2px solid var(--live-ink); outline-offset:2px; }
+    #boat-live-v2-wireframe .thumbnail img { width:100%; height:100%; object-fit:cover; }
+    #boat-live-v2-wireframe .gate { padding:12px; margin:12px 0; border:1px solid var(--live-border); border-radius:8px; }
+    #boat-live-v2-wireframe .gate p { font-size:13px; margin:0 0 8px; }
+    #boat-live-v2-wireframe .empty-live { padding:24px 0; }
   </style>
-  <div id="boat-live-wireframe" aria-label="Live sensor overview wireframe">
+  <div data-embedded id="boat-live-v2-wireframe" aria-label="Revised live sensor overview wireframe">
   <style>
-    #boat-live-wireframe { --live-bg:light-dark(#fafafa,#202020); --live-card:light-dark(#ffffff,#292929); --live-ink:light-dark(#242424,#ededed); --live-border:light-dark(#c7c7c7,#626262); --live-muted:light-dark(#545454,#c1c1c1); font:14px system-ui,sans-serif; color:var(--live-ink); }
-    #boat-live-wireframe * { box-sizing:border-box; }
-    #boat-live-wireframe .phone { width:100%; max-width:390px; margin:auto; background:var(--live-bg); border:1px solid var(--live-border); border-radius:20px; padding:18px 16px; }
-    #boat-live-wireframe h2 { margin:6px 0; font-size:24px; font-weight:500; }
-    #boat-live-wireframe .subtitle { color:var(--live-muted); margin:4px 0 20px; font-size:12px; }
-    #boat-live-wireframe h3 { margin:20px 0 10px; font-size:14px; font-weight:500; }
-    #boat-live-wireframe .sensor { background:var(--live-card); border:1px solid var(--live-border); border-radius:10px; padding:var(--live-padding,14px); margin:0 0 10px; }
-    #boat-live-wireframe h4 { margin:0; font-size:16px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    #boat-live-wireframe .sensor-heading { display:flex; align-items:center; gap:8px; min-height:24px; margin-bottom:4px; }
-    #boat-live-wireframe .identity { min-width:0; flex:1; }
-    #boat-live-wireframe .name-row { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
-    #boat-live-wireframe .history-label { display:block; margin-top:14px; font-size:12px; white-space:nowrap; }
-    #boat-live-wireframe .live-only { color:var(--live-muted); }
-    #boat-live-wireframe .placement { margin:3px 0 0; font-size:12px; color:var(--live-muted); overflow-wrap:anywhere; }
-    #boat-live-wireframe .thumbnail { width:40px; height:40px; flex-shrink:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; border:1px solid var(--live-border); border-radius:6px; color:var(--live-muted); font-size:11px; }
-    #boat-live-wireframe .thumbnail svg { width:18px; height:18px; }
-    #boat-live-wireframe .sensor-status { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; min-height:18px; margin-top:14px; }
-    #boat-live-wireframe .battery { display:inline-flex; margin-left:auto; align-items:center; gap:4px; flex-shrink:0; font-size:12px; color:var(--live-muted); font-variant-numeric:tabular-nums; }
-    #boat-live-wireframe .battery svg { width:18px; height:18px; }
-    #boat-live-wireframe .received { font-size:12px; color:var(--live-muted); margin:0; }
-    #boat-live-wireframe dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 8px; margin:14px 0 0; }
-    #boat-live-wireframe dl div { min-width:0; }
-    #boat-live-wireframe dt { font-size:12px; color:var(--live-muted); margin-bottom:4px; }
-    #boat-live-wireframe dd { margin:0; font-size:20px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
-    #boat-live-wireframe dd span { font-size:12px; font-weight:400; }
-    #boat-live-wireframe .nearby { margin-top:22px; padding-top:2px; border-top:1px solid var(--live-border); }
-    #boat-live-wireframe .registration { flex-shrink:0; display:inline-block; padding:2px 5px; border:1px solid var(--live-border); border-radius:4px; font-size:11px; white-space:nowrap; }
+    #boat-live-v2-wireframe { --live-bg:light-dark(#fafafa,#202020); --live-card:light-dark(#ffffff,#292929); --live-ink:light-dark(#242424,#ededed); --live-border:light-dark(#c7c7c7,#626262); --live-muted:light-dark(#545454,#c1c1c1); font:14px system-ui,sans-serif; color:var(--live-ink); }
+    #boat-live-v2-wireframe * { box-sizing:border-box; }
+    #boat-live-v2-wireframe .phone { width:100%; max-width:390px; margin:auto; background:var(--live-bg); border:1px solid var(--live-border); border-radius:20px; padding:18px 16px; }
+    #boat-live-v2-wireframe h2 { margin:6px 0; font-size:24px; font-weight:500; }
+    #boat-live-v2-wireframe .subtitle { color:var(--live-muted); margin:4px 0 20px; font-size:12px; }
+    #boat-live-v2-wireframe h3 { margin:20px 0 10px; font-size:14px; font-weight:500; }
+    #boat-live-v2-wireframe .sensor { background:var(--live-card); border:1px solid var(--live-border); border-radius:10px; padding:var(--live-padding,14px); margin:0 0 10px; }
+    #boat-live-v2-wireframe h4 { margin:0; font-size:16px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #boat-live-v2-wireframe .sensor-heading { display:flex; align-items:center; gap:8px; min-height:24px; margin-bottom:4px; }
+    #boat-live-v2-wireframe .identity { min-width:0; flex:1; }
+    #boat-live-v2-wireframe .name-row { display:flex; align-items:center; gap:6px; min-width:0; }
+    #boat-live-v2-wireframe .placement { margin:3px 0 0; font-size:12px; color:var(--live-muted); overflow-wrap:anywhere; }
+    #boat-live-v2-wireframe .thumbnail { width:40px; height:40px; flex-shrink:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; border:1px solid var(--live-border); border-radius:6px; color:var(--live-muted); font-size:11px; }
+    #boat-live-v2-wireframe .thumbnail svg { width:18px; height:18px; }
+    #boat-live-v2-wireframe .sensor-status { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; min-height:14px; margin-top:10px; }
+    #boat-live-v2-wireframe .battery { display:inline-flex; margin-left:auto; align-self:flex-start; padding-top:3px; align-items:center; flex-shrink:0; color:var(--live-muted); }
+    #boat-live-v2-wireframe .battery svg { width:14px; height:14px; stroke-width:1.5; }
+    #boat-live-v2-wireframe .received { font-size:12px; color:var(--live-muted); margin:0; }
+    #boat-live-v2-wireframe dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 8px; margin:14px 0 0; }
+    #boat-live-v2-wireframe dl div { min-width:0; }
+    #boat-live-v2-wireframe dt { font-size:12px; color:var(--live-muted); margin-bottom:4px; }
+    #boat-live-v2-wireframe dd { margin:0; font-size:20px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    #boat-live-v2-wireframe dd span { font-size:12px; font-weight:400; }
+    #boat-live-v2-wireframe .nearby { margin-top:22px; padding-top:2px; border-top:1px solid var(--live-border); }
+    #boat-live-v2-wireframe .registration { flex-shrink:0; display:inline-block; padding:2px 5px; border:1px solid var(--live-border); border-radius:4px; font-size:11px; white-space:nowrap; }
   </style>
   <section class="phone">
     <header><h2>Live</h2><p class="subtitle">Wireframe · illustrative readings</p></header>
-    <section aria-labelledby="live-registered-heading">
-      <h3 id="live-registered-heading">Registered sensors · 3</h3>
+    <section aria-labelledby="live-v2-registered-heading">
+      <h3 id="live-v2-registered-heading">Registered sensors · 3</h3>
       <article class="sensor">
-        <div class="sensor-heading"><div class="thumbnail" role="img" aria-label="Placeholder for the optional sensor photo"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div><div class="identity"><div class="name-row"><h4>Forward cabin</h4></div><p class="placement">Above the wardrobe</p></div></div><dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl><span class="history-label">History →</span>
-        <div class="sensor-status"><p class="received">Received 12 seconds ago</p><span class="battery" aria-label="Sensor battery: 86 percent"><i data-lucide="battery-full" aria-hidden="true"></i><span>86%</span></span></div>
+        <div class="sensor-heading"><div class="thumbnail" role="img" aria-label="Placeholder for the optional sensor photo"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div><div class="identity"><div class="name-row"><h4>Forward cabin</h4></div><p class="placement">Above the wardrobe</p></div><span class="battery" role="img" aria-label="Sensor battery: high"><i data-lucide="battery-full" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
       </article>
       <article class="sensor">
-        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Outdoors</h4></div><p class="placement">Under the cockpit canopy</p></div></div><dl><div><dt>Temperature</dt><dd>23.1 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>71 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl><span class="history-label">History →</span>
-        <div class="sensor-status"><p class="received">Received 2 hours ago</p><span class="battery" aria-label="Sensor battery: 42 percent"><i data-lucide="battery-medium" aria-hidden="true"></i><span>42%</span></span></div>
+        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Outdoors</h4></div><p class="placement">Under the cockpit canopy</p></div><span class="battery" role="img" aria-label="Sensor battery: medium"><i data-lucide="battery-medium" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>23.1 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>71 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+        <div class="sensor-status"><p class="received">Received 2 hours ago</p></div>
       </article>
       <article class="sensor">
-        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Battery temperature</h4></div></div></div><dl><div><dt>Temperature</dt><dd>31.2 <span>°C</span></dd></div></dl><span class="history-label live-only">Live only</span>
-        <div class="sensor-status"><p class="received">Received 20 seconds ago</p></div>
+        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Battery temperature</h4></div></div></div><dl><div><dt>Temperature</dt><dd>31.2 <span>°C</span></dd></div></dl>
       </article>
     </section>
-    <section class="nearby" aria-labelledby="live-nearby-heading">
-      <h3 id="live-nearby-heading">Other nearby sensors · 1</h3>
+    <section class="nearby" aria-labelledby="live-v2-nearby-heading">
+      <h3 id="live-v2-nearby-heading">Other nearby sensors · 1</h3>
       <article class="sensor">
-        <div class="sensor-heading"><h4>SENE-7C2A</h4><span class="registration">Not registered</span></div><dl><div><dt>Temperature</dt><dd>25.8 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>66 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
-        <div class="sensor-status"><p class="received">Received 5 seconds ago</p><span class="battery" aria-label="Sensor battery: 73 percent"><i data-lucide="battery-medium" aria-hidden="true"></i><span>73%</span></span></div>
+        <div class="sensor-heading"><div class="name-row"><h4>SENE-7C2A</h4></div><span class="registration">Not registered</span><span class="battery" role="img" aria-label="Sensor battery: medium"><i data-lucide="battery-medium" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>25.8 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>66 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
       </article>
     </section>
   </section>
   <script>
     (() => {
-      const root = document.getElementById('boat-live-wireframe');
+      const root = document.getElementById('boat-live-v2-wireframe');
       const state = {padding:14};
       function render() { root.style.setProperty('--live-padding',`${state.padding}px`); }
       render();
@@ -108,7 +75,160 @@
   </script>
 </div>
 
-  <div class="history-container" hidden><div id="boat-history-wireframe" aria-label="History phone wireframe">
+  <div class="sensor-screen" hidden><div data-embedded id="boat-sensor-detail-v2" aria-label="Sensor page wireframe">
+  <style>
+    #boat-sensor-detail-v2 { --sensor-bg:light-dark(#fafafa,#202020); --sensor-surface:light-dark(#ffffff,#292929); --sensor-ink:light-dark(#242424,#ededed); --sensor-muted:light-dark(#545454,#c1c1c1); --sensor-border:light-dark(#c7c7c7,#626262); font:14px system-ui,sans-serif; color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 * { box-sizing:border-box; }
+    #boat-sensor-detail-v2 .phone { width:100%; max-width:390px; margin:auto; padding:16px; border:1px solid var(--sensor-border); border-radius:20px; background:var(--sensor-bg); }
+    #boat-sensor-detail-v2 .bar { display:flex; align-items:center; gap:12px; margin-bottom:18px; min-height:44px; }
+    #boat-sensor-detail-v2 .back { font-size:20px; min-width:44px; min-height:44px; padding:0; border:0; background:transparent; }
+    #boat-sensor-detail-v2 .bar-label { font-size:16px; }
+    #boat-sensor-detail-v2 .identity { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    #boat-sensor-detail-v2 .photo { width:60px; height:60px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:1px solid var(--sensor-border); border-radius:8px; color:var(--sensor-muted); font-size:12px; }
+    #boat-sensor-detail-v2 .photo svg { width:24px; height:24px; }
+    #boat-sensor-detail-v2 h2 { margin:0; font-size:22px; font-weight:500; overflow-wrap:anywhere; }
+    #boat-sensor-detail-v2 .placement { margin:5px 0 0; color:var(--sensor-muted); font-size:13px; }
+    #boat-sensor-detail-v2 .registration { display:inline-block; margin-top:6px; border:1px solid var(--sensor-border); padding:3px 6px; border-radius:4px; font-size:12px; }
+    #boat-sensor-detail-v2 .readings { padding:0 0 16px; border-bottom:1px solid var(--sensor-border); }
+    #boat-sensor-detail-v2 .measurements { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 8px; margin:0; }
+    #boat-sensor-detail-v2 dt { font-size:12px; color:var(--sensor-muted); margin:0 0 4px; }
+    #boat-sensor-detail-v2 dd { margin:0; }
+    #boat-sensor-detail-v2 .measurements dd { font-size:18px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    #boat-sensor-detail-v2 .measurements dd span { font-size:12px; }
+    #boat-sensor-detail-v2 .status { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; margin:16px 0 0; }
+    #boat-sensor-detail-v2 .battery { display:flex; align-items:center; gap:6px; }
+    #boat-sensor-detail-v2 .battery svg { width:18px; height:18px; }
+    #boat-sensor-detail-v2 .history { margin:20px 0; }
+    #boat-sensor-detail-v2 .action { display:block; width:100%; min-height:44px; padding:11px 12px; font:inherit; border:1px solid var(--sensor-border); border-radius:8px; color:var(--sensor-ink); background:var(--sensor-surface); text-align:center; }
+    #boat-sensor-detail-v2 .primary { background:var(--sensor-ink); color:var(--sensor-bg); border-color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 .hint { font-size:12px; color:var(--sensor-muted); margin:7px 0 0; }
+    #boat-sensor-detail-v2 .facts { margin:0 0 14px; }
+    #boat-sensor-detail-v2 .facts div { margin-top:12px; }
+    #boat-sensor-detail-v2 .facts dd { overflow-wrap:anywhere; }
+    #boat-sensor-detail-v2 footer { font-size:11px; color:var(--sensor-muted); margin-top:20px; }
+    #boat-sensor-detail-v2 [hidden] { display:none !important; }
+    #boat-sensor-detail-v2 .identity-text { flex:1; min-width:0; }
+    #boat-sensor-detail-v2 .editable-row { display:block; }
+    #boat-sensor-detail-v2 button { cursor:pointer; font:inherit; color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 .edit-field { width:44px; height:44px; padding:0; margin-left:6px; border:0; background:transparent; display:inline-flex; vertical-align:middle; align-items:center; justify-content:flex-start; color:var(--sensor-muted); }
+    #boat-sensor-detail-v2 .edit-field svg { width:1em; height:1em; stroke-width:1.5; }
+    #boat-sensor-detail-v2 .photo-column { width:60px; flex-shrink:0; align-self:flex-start; }
+    #boat-sensor-detail-v2 .photo img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+    #boat-sensor-detail-v2 .photo { background:var(--sensor-surface); padding:0; overflow:hidden; }
+    #boat-sensor-detail-v2 .remove-photo { min-height:44px; width:100%; padding:4px 0; border:0; background:transparent; font-size:11px; color:var(--sensor-muted); }
+    #boat-sensor-detail-v2 button:focus-visible, #boat-sensor-detail-v2 input:focus-visible { outline:2px solid var(--sensor-ink); outline-offset:2px; }
+    #boat-sensor-detail-v2 dialog { width:min(320px,calc(100% - 32px)); padding:20px; border:1px solid var(--sensor-border); border-radius:12px; background:var(--sensor-surface); color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 dialog::backdrop { background:light-dark(#00000055,#00000088); }
+    #boat-sensor-detail-v2 dialog label { display:block; font-size:18px; margin-bottom:16px; }
+    #boat-sensor-detail-v2 dialog input { width:100%; min-height:48px; padding:10px; border:1px solid var(--sensor-border); border-radius:6px; font:16px system-ui,sans-serif; color:var(--sensor-ink); background:var(--sensor-bg); }
+    #boat-sensor-detail-v2 .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+    #boat-sensor-detail-v2 .dialog-actions button { min-height:44px; padding:8px 14px; border:1px solid var(--sensor-border); border-radius:6px; background:var(--sensor-bg); }
+    #boat-sensor-detail-v2 .removal-area { border-top:1px solid var(--sensor-border); margin-top:24px; padding-top:12px; }
+    #boat-sensor-detail-v2 .remove-sensor { min-height:44px; padding:8px 0; border:0; background:transparent; color:light-dark(#a12622,#ffb4ab); }
+    #boat-sensor-detail-v2 .removal-dialog h3 { font-size:18px; font-weight:500; margin:0 0 14px; overflow-wrap:anywhere; }
+    #boat-sensor-detail-v2 .removal-dialog p { line-height:1.5; margin:10px 0; }
+    #boat-sensor-detail-v2 .dialog-actions .confirm-removal { background:light-dark(#a12622,#ffb4ab); color:light-dark(#ffffff,#40100d); border-color:transparent; }
+  </style>
+  <section class="phone"></section>
+  <dialog aria-labelledby="sensor-field-label"><label id="sensor-field-label" for="sensor-field-input">Edit name</label><input id="sensor-field-input" autocomplete="off"><p class="hint dialog-hint"></p><div class="dialog-actions"><button class="cancel-field" type="button">Cancel</button><button class="save-field" type="button">Save</button></div></dialog>
+  <dialog class="removal-dialog" aria-labelledby="sensor-removal-title" aria-describedby="sensor-removal-impact"><h3 id="sensor-removal-title">Remove sensor?</h3><p id="sensor-removal-impact">Its local name, placement, photo and downloaded history will be deleted from this app.</p><p class="hint">History stored on the sensor will not be erased.</p><div class="dialog-actions"><button class="cancel-removal" type="button">Cancel</button><button class="confirm-removal" type="button">Remove sensor</button></div></dialog>
+  <input class="photo-file" type="file" accept="image/*" aria-label="Choose sensor photo" hidden>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-sensor-detail-v2');
+      const state = {example:'liveOnly'};
+      let connectedSensor = null;
+      let connectedBack = null;
+      let connectedHistory = null;
+      const currentSensor = () => connectedSensor || examples[state.example];
+      const dialog = root.querySelector('dialog');
+      const removalDialog = root.querySelector('.removal-dialog');
+      let removalTarget = null;
+      const input = root.querySelector('#sensor-field-input');
+      const escape = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      let editedField = null;
+      let photoRevision = 0;
+      const examples = {
+        registered:{name:'Forward cabin',placement:'Above the wardrobe',photo:true,registered:true,history:true,battery:86,age:'12 seconds ago',broadcast:'SENE-1A2B',address:'AA:BB:CC:DD:EE:01',values:[26.4,64,1013]},
+        detected:{name:'SENE-7C2A',placement:'',photo:false,registered:false,history:true,battery:73,age:'5 seconds ago',broadcast:'SENE-7C2A',address:'AA:BB:CC:DD:EE:02',values:[25.8,66,1013]},
+        liveOnly:{name:'Battery temperature',placement:'',photo:false,registered:true,history:false,battery:null,age:'20 seconds ago',broadcast:'Battery temperature',address:'AA:BB:CC:DD:EE:03',values:[31.2,null,null]}
+      };
+      Object.values(examples).forEach(sensor => { sensor.downloadedHistoryPresent = sensor.registered && sensor.history; });
+      function render() {
+        const sensor = currentSensor();
+        const measurements = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
+        const history = !sensor.registered ? '<div class="history"><button class="action primary register" type="button">Register sensor</button></div>' : sensor.history ? `<div class="history"><button class="action primary open-history" type="button">Open history →</button><p class="hint">${sensor.downloadedHistoryPresent?'Updates automatically when opened.':'No history downloaded. Downloads when opened.'}</p></div>` : '<div class="history"><p class="hint">This sensor does not store history.</p></div>';
+        const editButton = field => sensor.registered?`<button class="edit-field" type="button" data-field="${field}" aria-label="Edit ${field==='name'?'local name':'placement'}"><i data-lucide="pencil" aria-hidden="true"></i></button>`:'';
+        const photo = sensor.registered?`<div class="photo-column"><button class="photo choose-photo" type="button" aria-label="${sensor.photo?'Change sensor photo':'Add sensor photo'}">${typeof sensor.photo==='string'?`<img src="${escape(sensor.photo)}" alt="Sensor photo">`:`<i data-lucide="${sensor.photo?'image':'image-plus'}" aria-hidden="true"></i><span>${sensor.photo?'Photo':'Add photo'}</span>`}</button>${sensor.photo?'<button class="remove-photo" type="button">Remove</button>':''}</div>`:'';
+        root.querySelector('.phone').innerHTML = `<div class="bar"><button class="back" type="button" aria-label="Back to live">←</button><span class="bar-label">Sensor</span></div><div class="identity">${photo}<div class="identity-text"><div class="editable-row"><h2>${escape(sensor.name)}${editButton('name')}</h2></div>${sensor.registered?`<div class="editable-row"><p class="placement">${escape(sensor.placement || 'Add placement')}${editButton('placement')}</p></div>`:''}${sensor.registered?'':'<span class="registration">Not registered</span>'}</div></div><section class="readings" aria-label="Latest readings"><dl class="measurements">${measurements}</dl></section><section aria-label="Sensor information"><dl class="status"><div><dt>Last received</dt><dd>${sensor.age}</dd></div>${sensor.battery===null?'':`<div><dt>Sensor battery</dt><dd class="battery"><i data-lucide="battery-full" aria-hidden="true"></i>${sensor.battery}%</dd></div>`}</dl><dl class="facts"><div><dt>Broadcast name</dt><dd>${sensor.broadcast}</dd></div><div><dt>Bluetooth address</dt><dd>${sensor.address}</dd></div><div><dt>History support</dt><dd>${sensor.history?'Available':'Not supported'}</dd></div></dl></section>${history}${sensor.registered?'<div class="removal-area"><button class="remove-sensor" type="button">Remove sensor</button></div>':''}<footer>Screen wireframe · illustrative data and addresses</footer>`;
+        root.querySelector('.back').onclick = () => { if(connectedBack) connectedBack(); };
+        const openHistory = root.querySelector('.open-history');
+        if(openHistory) openHistory.onclick = () => { if(connectedHistory) connectedHistory(sensor); };
+        root.querySelectorAll('[data-field]').forEach(button => { button.onclick = () => {
+          editedField = button.dataset.field;
+          root.querySelector('#sensor-field-label').textContent = editedField==='name'?'Name in this app':'Placement · optional';
+          root.querySelector('.dialog-hint').textContent = editedField==='name'?'The broadcast name stays unchanged.':'Leave empty to remove the description.';
+          input.value = sensor[editedField];
+          dialog.showModal(); input.focus(); input.select();
+        }; });
+        const register = root.querySelector('.register');
+        if(register) register.onclick = () => { sensor.registered = true; sensor.name = sensor.broadcast; render(); root.querySelector('[data-field="name"]').focus({preventScroll:true}); };
+        const choose = root.querySelector('.choose-photo');
+        if(choose) choose.onclick = () => root.querySelector('.photo-file').click();
+        const remove = root.querySelector('.remove-photo');
+        if(remove) remove.onclick = () => { photoRevision += 1; sensor.photo = false; render(); root.querySelector('.choose-photo').focus(); };
+        const removeSensor = root.querySelector('.remove-sensor');
+        if(removeSensor) removeSensor.onclick = () => {
+          removalTarget = sensor;
+          root.querySelector('#sensor-removal-title').textContent = `Remove ${sensor.name}?`;
+          removalDialog.showModal(); root.querySelector('.cancel-removal').focus();
+        };
+        if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:18,height:18}});
+      }
+      root.querySelector('.cancel-field').onclick = () => dialog.close();
+      root.querySelector('.cancel-removal').onclick = () => { removalTarget = null; removalDialog.close(); };
+      removalDialog.addEventListener('cancel',() => { removalTarget = null; });
+      root.querySelector('.confirm-removal').onclick = () => {
+        if(!removalTarget || removalTarget!==currentSensor()) return;
+        const sensor = removalTarget;
+        photoRevision += 1;
+        sensor.registered = false;
+        sensor.name = sensor.broadcast;
+        sensor.placement = '';
+        sensor.photo = false;
+        sensor.downloadedHistoryPresent = false;
+        removalTarget = null; removalDialog.close(); render();
+        root.querySelector('.register').focus();
+      };
+      root.querySelector('.save-field').onclick = () => {
+        const sensor = currentSensor();
+        sensor[editedField] = input.value.trim() || (editedField==='name'?sensor.broadcast:'');
+        dialog.close(); render(); root.querySelector(`[data-field="${editedField}"]`).focus();
+      };
+      input.onkeydown = event => { if(event.key==='Enter') { event.preventDefault(); root.querySelector('.save-field').click(); } };
+      root.querySelector('.photo-file').onchange = event => {
+        const file = event.target.files[0];
+        if(!file || !file.type.startsWith('image/')) return;
+        const sensor = currentSensor();
+        const revision = ++photoRevision;
+        const reader = new FileReader();
+        reader.onload = () => { if(revision!==photoRevision || sensor!==currentSensor()) return; sensor.photo = reader.result; render(); };
+        reader.readAsDataURL(file); event.target.value = '';
+      };
+      render();
+      root.sensorPagePrototype = {
+        open(sensor,onBack,onHistory) { connectedSensor = sensor; connectedBack = onBack; connectedHistory = onHistory; photoRevision += 1; dialog.close(); removalDialog.close(); removalTarget = null; render(); },
+        close() { photoRevision += 1; dialog.close(); removalDialog.close(); removalTarget = null; }
+      };
+      if(globalThis.Tweak && !root.hasAttribute('data-embedded')) {
+        const tweak = new Tweak({container:root,onChange:() => { photoRevision += 1; removalTarget = null; dialog.close(); removalDialog.close(); render(); }});
+        tweak.addSelect(state,'example',{label:'Sensor example',options:[{label:'Registered · history',value:'registered'},{label:'Detected · unregistered',value:'detected'},{label:'Registered · live only',value:'liveOnly'}]});
+      }
+    })();
+  </script>
+</div>
+</div>
+  <div class="history-screen" hidden><div data-embedded id="boat-history-wireframe" aria-label="History phone wireframe">
   <style>
     #boat-history-wireframe { --boat-bg:light-dark(#fafafa,#202020); --boat-ink:light-dark(#252525,#ededed); --boat-line:light-dark(#c8c8c8,#606060); --boat-soft:light-dark(#eeeeee,#303030); color:var(--boat-ink); font-family:system-ui,sans-serif; }
     #boat-history-wireframe * { box-sizing:border-box; }
@@ -180,6 +300,12 @@
     #boat-history-wireframe .cursor-mark { fill:var(--boat-bg); stroke:var(--boat-ink); stroke-width:2; }
     #boat-history-wireframe .detail-legend { position:absolute; z-index:2; top:54px; right:20px; font-size:12px; background:var(--boat-bg); padding:0 4px; }
     #boat-history-wireframe .detail .status { position:absolute; top:42px; left:56px; font-size:11px; background:var(--boat-bg); }
+    #boat-history-wireframe .detail .retry { position:absolute; z-index:6; right:20px; bottom:10px; font-size:12px; background:var(--boat-bg); }
+    #boat-history-wireframe .history-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; }
+    #boat-history-wireframe .history-empty h3 { font-size:20px; font-weight:500; margin:8px 0; }
+    #boat-history-wireframe .history-empty p { margin:8px 0; max-width:420px; }
+    #boat-history-wireframe .detail .history-empty .retry { position:static; margin-top:12px; }
+    #boat-history-wireframe .history-empty progress { width:160px; height:6px; accent-color:var(--boat-ink); }
     @media(max-width:440px) { #boat-history-wireframe .detail h2 { max-width:125px; } #boat-history-wireframe .overlay-bar button { font-size:12px; padding:4px; } }
   </style>
   <section class="phone">
@@ -201,6 +327,7 @@
       <div class="timeline-labels"><span>Mar 2026</span><span>Aug 2026</span></div>
       </div>
       <p class="note status" aria-live="polite">Updating saved sensors… · demo</p>
+      <button class="retry" type="button" hidden>Try again</button>
     </header>
     <div class="content"></div>
     <div class="time-dock" hidden></div>
@@ -213,6 +340,7 @@
     (() => {
       const root = document.getElementById('boat-history-wireframe');
       const content = root.querySelector('.content');
+      const retryButton = root.querySelector('.retry');
       const timeNavigation = root.querySelector('.time-navigation');
       const names = ['Forward cabin', 'Dinette', 'Outdoors'];
       const escapeMarkup = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -223,6 +351,9 @@
       let directEntry = false;
       let visibleSensors = [0,1,2];
       let detailGeometry = null;
+      let connected = null;
+      const hasData = index => !connected || connected.hasData(index);
+      const comparisonFor = index => visibleSensors.find(i => i!==index && i===2 && hasData(i)) ?? visibleSensors.find(i => i!==index && hasData(i)) ?? null;
       const lastDay = 183;
       const minimumSpan = 35;
       const dateLabel = day => new Date(Date.UTC(2026,2,1+day)).toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'});
@@ -253,22 +384,32 @@
         let cursor = '';
         if (large && state.inspected !== null && state.inspected >= state.start && state.inspected <= state.end) {
           const x = (left+right)/2;
-          const sources = state.compare ? [index,index===2?0:2] : [index];
+          const sources = state.compare ? [index,comparisonFor(index)] : [index];
           cursor = `<line class="cursor-line" x1="${x}" x2="${x}" y1="${top}" y2="${bottom}"/>`+sources.map(i => `<circle class="cursor-mark" cx="${x}" cy="${bottom-(daily[metric][i][state.inspected]-minimum)/(maximum-minimum)*(bottom-top)}" r="4"/>`).join('');
         }
-        return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Illustrative ${metric} trend for ${escapeMarkup(names[index])}. Fixed center cursor. Drag the chart to inspect samples; pinch to zoom around the cursor."><text x="0" y="12">${units[metric]}</text><line class="grid" x1="${left}" y1="${top}" x2="${right}" y2="${top}"/><line class="grid" x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}"/><text x="${left-6}" y="${top+4}" text-anchor="end">${maximum}</text><text x="${left-6}" y="${bottom+4}" text-anchor="end">${minimum}</text><polyline class="trend" points="${points(index)}"/>${large && state.compare ? `<polyline class="trend comparison" points="${points(index===2?0:2)}"/>` : ''}${cursor}<text x="${left}" y="${height-4}">${dateLabel(state.start)}</text><text x="${right}" y="${height-4}" text-anchor="end">${dateLabel(state.end)}</text></svg>`;
+        return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Illustrative ${metric} trend for ${escapeMarkup(names[index])}. Fixed center cursor. Drag the chart to inspect samples; pinch to zoom around the cursor."><text x="0" y="12">${units[metric]}</text><line class="grid" x1="${left}" y1="${top}" x2="${right}" y2="${top}"/><line class="grid" x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}"/><text x="${left-6}" y="${top+4}" text-anchor="end">${maximum}</text><text x="${left-6}" y="${bottom+4}" text-anchor="end">${minimum}</text><polyline class="trend" points="${points(index)}"/>${large && state.compare ? `<polyline class="trend comparison" points="${points(comparisonFor(index))}"/>` : ''}${cursor}<text x="${left}" y="${height-4}">${dateLabel(state.start)}</text><text x="${right}" y="${height-4}" text-anchor="end">${dateLabel(state.end)}</text></svg>`;
       }
       function render() {
         const detail = state.selected !== null;
         const route = detail ? `sensor-${state.selected}` : 'overview';
         if (updateRoute !== route) {
           updateRoute = route;
+          if(connected) connected.enter(state.selected);
+          else {
           clearTimeout(updateTimer);
           root.querySelector('.status').textContent = detail ? 'Updating sensor… · demo' : 'Updating saved sensors… · demo';
           updateTimer = setTimeout(() => {
             root.querySelector('.status').textContent = detail ? (state.selected===2?'Sensor unreachable · saved history shown · demo':'Update complete · demo') : `${visibleSensors.length-(visibleSensors.includes(2)?1:0)} updated${visibleSensors.includes(2)?' · '+names[2]+' unreachable · saved data shown':''} · demo`;
           },1600);
+          }
         }
+        const dataVisible = detail ? hasData(state.selected) : visibleSensors.some(hasData);
+        if(comparisonFor(state.selected)===null) state.compare = false;
+        if(connected) root.querySelector('.status').textContent = connected.status(state.selected);
+        const presentation = connected ? connected.presentation(state.selected) : null;
+        retryButton.hidden = !presentation || !presentation.action;
+        if(presentation) retryButton.textContent = presentation.action || 'Try again';
+        root.querySelector('.controls').hidden = !dataVisible;
         if (detail) {
           const span = state.end-state.start;
           state.inspected = Math.max(0,Math.min(lastDay,Math.round((state.start+state.end)/2)));
@@ -278,16 +419,16 @@
         root.querySelector('.phone').classList.toggle('detail',detail);
         root.querySelector('.prototype-label').hidden = detail;
         root.querySelector('.time-dock').hidden = true;
-        root.querySelector('.overlay-bar').hidden = !detail;
+        root.querySelector('.overlay-bar').hidden = !detail || !dataVisible || comparisonFor(state.selected)===null;
         root.querySelector('.detail-legend').hidden = !detail || !state.compare;
-        root.querySelector('.detail-legend').textContent = detail && state.compare ? `— ${names[state.selected]} · – – ${names[state.selected===2?0:2]}` : '';
+        root.querySelector('.detail-legend').textContent = detail && state.compare ? `— ${names[state.selected]} · – – ${names[comparisonFor(state.selected)]}` : '';
         root.querySelector('.overlay-compare').setAttribute('aria-pressed',String(state.compare));
-        root.querySelector('.overlay-compare').setAttribute('aria-label',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[state.selected===2?0:2])}`);
-        root.querySelector('.overlay-compare').setAttribute('data-tooltip',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[state.selected===2?0:2])}`);
+        root.querySelector('.overlay-compare').setAttribute('aria-label',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[comparisonFor(state.selected)])}`);
+        root.querySelector('.overlay-compare').setAttribute('data-tooltip',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[comparisonFor(state.selected)])}`);
         const readout = root.querySelector('.sample-readout');
-        readout.hidden = !detail || state.inspected === null;
+        readout.hidden = !detail || !dataVisible || state.inspected === null;
         if (!readout.hidden) {
-          const sources = state.compare ? [state.selected,state.selected===2?0:2] : [state.selected];
+          const sources = state.compare ? [state.selected,comparisonFor(state.selected)] : [state.selected];
           readout.innerHTML = `<div>${dateLabel(state.inspected)} 2026 · 00:00 UTC · demo sample</div>`+sources.map(i => `<p>${escapeMarkup(names[i])}: ${daily.temperature[i][state.inspected]} °C · ${daily.humidity[i][state.inspected]} % · ${daily.pressure[i][state.inspected]} hPa</p>`).join('');
         }
         const timeParent = detail ? root.querySelector('.time-dock') : root.querySelector('header');
@@ -296,21 +437,29 @@
           else timeParent.insertBefore(timeNavigation,root.querySelector('.status'));
         }
         root.querySelector('.back').hidden = !detail && !externalBack;
-        root.querySelector('.back').setAttribute('aria-label',externalBack && (directEntry || !detail)?'Back to live':'Back to history overview');
+        root.querySelector('.back').setAttribute('aria-label',externalBack && (directEntry || !detail)?(connected?.backLabel || 'Back to live'):'Back to history overview');
         root.querySelector('h2').textContent = detail ? names[state.selected] : 'History';
-        root.querySelector('.status').hidden = false;
+        root.querySelector('.status').hidden = detail && !dataVisible;
+        timeNavigation.hidden = !dataVisible;
         root.querySelector('.dates').textContent = `${dateLabel(state.start)} – ${dateLabel(state.end)} 2026 · ${state.end-state.start+1} days`;
         root.querySelector('.window').style.left = `${Math.max(0,state.start)/lastDay*100}%`;
         root.querySelector('.window').style.width = `${(Math.min(lastDay,state.end)-Math.max(0,state.start))/lastDay*100}%`;
         const metric = root.querySelector('.metric').value;
         const summary = i => `Recorded min ${Math.min(...values(i))} ${units[metric]} · max ${Math.max(...values(i))} ${units[metric]}`;
-        if (detail) {
+        if(detail && !dataVisible) {
+          const view = presentation || {title:'No downloaded history yet',description:''};
+          content.innerHTML = `<div class="history-empty">${view.loading?'<progress aria-label="Updating history"></progress>':''}<h3>${escapeMarkup(view.title)}</h3><p>${escapeMarkup(view.description)}</p></div>`;
+        } else if (detail) {
           content.innerHTML = `<div class="detail-plot">${chart(state.selected,true)}</div>`;
         } else {
-          content.innerHTML = names.map((name,i) => visibleSensors.includes(i) ? `<button class="sensor" type="button" data-sensor="${i}" aria-label="Open ${escapeMarkup(name)} history"><span class="sensor-head"><span>${escapeMarkup(name)}</span><span aria-hidden="true">→</span></span>${chart(i,false)}<span class="summary">${summary(i)}</span></button>` : '').join('');
+          content.innerHTML = names.map((name,i) => visibleSensors.includes(i) ? `<button class="sensor" type="button" data-sensor="${i}" aria-label="Open ${escapeMarkup(name)} history"><span class="sensor-head"><span>${escapeMarkup(name)}</span><span aria-hidden="true">→</span></span>${hasData(i)?chart(i,false):''}<span class="summary">${hasData(i)?summary(i):escapeMarkup(connected.status(i))}</span></button>` : '').join('');
+          if(!visibleSensors.length) content.innerHTML = '<div class="history-empty"><h3>No history-enabled sensors</h3><p>Register a compatible sensor to view its history.</p></div>';
           content.querySelectorAll('[data-sensor]').forEach(button => { button.onclick = () => { state.selected = Number(button.dataset.sensor); state.compare = false; content.scrollTop = 0; render(); }; });
         }
+        const retryParent = detail ? (dataVisible?root.querySelector('.phone'):content.querySelector('.history-empty')) : root.querySelector('header');
+        retryParent.appendChild(retryButton);
       }
+      retryButton.onclick = () => { if(connected) connected.retry(state.selected); };
       root.querySelector('.back').onclick = () => {
         if (externalBack && (directEntry || state.selected === null)) { externalBack(); return; }
         const span = Math.min(lastDay,Math.max(1,Math.round(state.end-state.start)));
@@ -323,7 +472,7 @@
       function plotFraction(x) {
         const bounds = content.querySelector('svg').getBoundingClientRect();
         const local = (x-bounds.left)/bounds.width*detailGeometry.width;
-        return Math.max(0,Math.min(1,(local-detailGeometry.left)/(detailGeometry.right-detailGeometry.left)));
+        return (local-detailGeometry.left)/(detailGeometry.right-detailGeometry.left);
       }
       function setRange(start,span) {
         span = Math.max(1,Math.min(lastDay,span));
@@ -341,7 +490,7 @@
         gesture = {start:state.start,span:state.end-state.start,x,y:positions[0].y,fraction:plotFraction(x),distance:positions.length>1?Math.max(1,Math.hypot(positions[1].x-positions[0].x,positions[1].y-positions[0].y)):0,moved:!tapAllowed};
       }
       content.onpointerdown = event => {
-        if (state.selected === null || event.button !== 0) return;
+        if (state.selected === null || !hasData(state.selected) || event.button !== 0) return;
         pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
         content.setPointerCapture(event.pointerId);
         beginGesture(pointers.size===1);
@@ -368,7 +517,7 @@
       content.onpointerup = event => endPointer(event,false);
       content.onpointercancel = content.onlostpointercapture = event => endPointer(event,true);
       content.addEventListener('wheel',event => {
-        if (state.selected === null) return;
+        if (state.selected === null || !hasData(state.selected)) return;
         event.preventDefault();
         const span = state.end-state.start;
         if (Math.abs(event.deltaX)>Math.abs(event.deltaY)) setRange(state.start+event.deltaX/600*span,span);
@@ -411,7 +560,9 @@
       root.querySelector('.all-time').onclick = () => { state.start = 0; state.end = lastDay; render(); };
       render();
       root.historyPrototype = {
-        open(index,onBack,labels,available) {
+        open(index,onBack,labels,available,context=null) {
+          connected = context;
+          clearTimeout(updateTimer);
           labels.forEach((label,i) => { names[i] = label; });
           visibleSensors = available;
           externalBack = onBack;
@@ -420,10 +571,12 @@
           state.compare = false;
           updateRoute = null;
           render();
-        }
+        },
+        refresh() { render(); },
+        close() { clearTimeout(updateTimer); pointers.clear(); gesture = null; }
       };
       new ResizeObserver(render).observe(content);
-      if (globalThis.Tweak) {
+      if (globalThis.Tweak && !root.hasAttribute('data-embedded')) {
         const tweak = new Tweak({container:root,onChange:render});
         tweak.addSelect(state,'density',{label:'Overview chart density',options:['comfortable','compact']});
       }
@@ -431,135 +584,154 @@
   </script>
 </div>
 </div>
-  <section class="editor" hidden></section>
 </div>
 <script>
   (() => {
-    const root = document.getElementById('boat-navigation-prototype');
-    const live = document.getElementById('boat-live-wireframe');
+    const root = document.getElementById('boat-prototype-v2');
+    const live = document.getElementById('boat-live-v2-wireframe');
+    const page = document.getElementById('boat-sensor-detail-v2');
     const history = document.getElementById('boat-history-wireframe');
-    const historyContainer = root.querySelector('.history-container');
-    const editor = root.querySelector('.editor');
-    const cleanVariant = root.dataset.layout === 'clean';
-    let managing = false;
+    const sensorScreen = root.querySelector('.sensor-screen');
+    const historyScreen = root.querySelector('.history-screen');
+    const settings = {transport:'ready',outcome:'normal',elapsedMinutes:0};
     const sensors = [
-      {id:'cabin',broadcast:'Forward cabin',name:'Forward cabin',placement:'Above the wardrobe',photo:'sample',registered:true,history:0,age:'12 seconds',battery:86,values:[26.4,64,1013]},
-      {id:'outside',broadcast:'Outdoors',name:'Outdoors',placement:'Under the cockpit canopy',photo:null,registered:true,history:2,age:'2 hours',battery:42,values:[23.1,71,1013]},
-      {id:'battery',broadcast:'Battery temperature',name:'Battery temperature',placement:'',photo:null,registered:true,history:null,age:'20 seconds',battery:null,values:[31.2,null,null]},
-      {id:'nearby',broadcast:'SENE-7C2A',name:'SENE-7C2A',placement:'',photo:null,registered:false,history:1,age:'5 seconds',battery:73,values:[25.8,66,1013]}
+      {id:'cabin',name:'Forward cabin',broadcast:'SENE-1A2B',placement:'Above the wardrobe',photo:true,registered:true,history:true,historyIndex:0,downloadedHistoryPresent:true,battery:86,ageSeconds:12,address:'AA:BB:CC:DD:EE:01',values:[26.4,64,1013]},
+      {id:'outside',name:'Outdoors',broadcast:'Outdoors',placement:'Under the cockpit canopy',photo:false,registered:true,history:true,historyIndex:2,downloadedHistoryPresent:true,battery:42,ageSeconds:7200,address:'AA:BB:CC:DD:EE:02',values:[23.1,71,1013]},
+      {id:'battery',name:'Battery temperature',broadcast:'Battery temperature',placement:'',photo:false,registered:true,history:false,historyIndex:null,downloadedHistoryPresent:false,battery:null,ageSeconds:20,address:'AA:BB:CC:DD:EE:03',values:[31.2,null,null]},
+      {id:'nearby',name:'SENE-7C2A',broadcast:'SENE-7C2A',placement:'',photo:false,registered:false,history:true,historyIndex:1,downloadedHistoryPresent:false,battery:73,ageSeconds:5,address:'AA:BB:CC:DD:EE:04',values:[25.8,66,1013]}
     ];
     const escape = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    let focusedSensor = null;
-    let imageDraft = null;
-    let editSession = 0;
+    const byIndex = index => sensors.find(sensor => sensor.historyIndex===index);
+    const available = () => sensors.filter(sensor => sensor.registered && sensor.history).map(sensor => sensor.historyIndex);
+    const elapsed = sensor => sensor.ageSeconds+settings.elapsedMinutes*60;
+    const ageText = sensor => {
+      const seconds = elapsed(sensor);
+      if(seconds<60) return `${Math.floor(seconds)} seconds ago`;
+      if(seconds<3600) return `${Math.floor(seconds/60)} minutes ago`;
+      return `${Math.floor(seconds/3600)} hours ago`;
+    };
+    let route = 'live';
+    let activeSensor = null;
+    let activeHistoryIndex = null;
+    let generation = 0;
+    let timers = [];
+    const phases = new Map();
+    function cancelUpdates() { generation += 1; timers.forEach(clearTimeout); timers = []; }
     function icons() { if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:18,height:18}}); }
+    function gate() {
+      if(settings.transport==='bluetooth') return {title:'Turn on Bluetooth',description:'Bluetooth is needed to receive readings and download history.',action:'Turn on Bluetooth'};
+      if(settings.transport==='permission') return {title:'Allow nearby devices',description:'Allow access to receive sensor readings and download history.',action:'Allow access'};
+      if(settings.transport==='settings') return {title:'Nearby devices access is disabled',description:'Restore nearby-device access in app settings.',action:'Open settings'};
+      return null;
+    }
     function card(sensor) {
-      const title = sensor.registered ? sensor.name : sensor.broadcast;
-      const photo = sensor.photo === 'sample' ? '<div class="thumbnail" role="img" aria-label="Sample photo placeholder"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div>' : sensor.photo ? `<div class="thumbnail"><img src="${escape(sensor.photo)}" alt="Sensor photo"></div>` : '';
-      const heading = sensor.registered ? `<div class="identity"><div class="name-row"><h4>${escape(title)}</h4></div>${sensor.placement?`<p class="placement">${escape(sensor.placement)}</p>`:''}</div>` : `<h4>${escape(title)}</h4><span class="registration">Not registered</span>`;
-      const measurements = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
-      const battery = sensor.battery===null?'':`<span class="battery" aria-label="Sensor battery: ${sensor.battery} percent"><i data-lucide="${sensor.battery>75?'battery-full':'battery-medium'}" aria-hidden="true"></i><span>${sensor.battery}%</span></span>`;
-      const historyLabel = sensor.registered ? `<span class="history-label ${sensor.history===null?'live-only':''}">${sensor.history===null?'Live only':'History →'}</span>` : '';
-      const action = !sensor.registered || sensor.history!==null ? `<button class="card-action" type="button" data-open="${sensor.id}" aria-label="${sensor.registered?'Open history for':'Register'} ${escape(title)}"></button>` : '';
-      if(cleanVariant) {
-        if(managing) return `<article class="sensor"><div class="sensor-heading">${photo}${heading}</div><div class="management-actions"><button type="button" data-edit="${sensor.id}">${sensor.registered?'Edit':'Register'}</button><button type="button" data-info="${sensor.id}">Information</button></div></article>`;
-        const capability = !sensor.registered ? '' : sensor.history===null ? '<span class="history-label live-only">Live only</span>' : '<span class="history-label" aria-label="History available" data-tooltip="Open history"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>';
-        return `<article class="sensor"><div class="sensor-heading">${photo}${heading}${capability}</div><dl>${measurements}</dl><div class="sensor-status"><p class="received">Received ${sensor.age} ago</p>${battery}</div>${action}</article>`;
-      }
-      return `<article class="sensor"><div class="sensor-heading">${photo}${heading}</div><dl>${measurements}</dl>${historyLabel}<div class="sensor-status"><p class="received">Received ${sensor.age} ago</p>${battery}</div>${action}<button class="menu-toggle" type="button" data-menu="${sensor.id}" aria-label="Actions for ${escape(title)}">⋮</button></article>`;
+      const name = sensor.registered?sensor.name:sensor.broadcast;
+      const photo = !sensor.photo?'':`<div class="thumbnail" role="img" aria-label="Sensor photo">${typeof sensor.photo==='string'?`<img src="${escape(sensor.photo)}" alt="Sensor photo">`:'<i data-lucide="image" aria-hidden="true"></i><span>Photo</span>'}</div>`;
+      const battery = sensor.battery===null?'':`<span class="battery" role="img" aria-label="Sensor battery: ${sensor.battery>75?'high':'medium'}"><i data-lucide="${sensor.battery>75?'battery-full':'battery-medium'}" aria-hidden="true"></i></span>`;
+      const heading = sensor.registered?`<div class="identity"><h4>${escape(name)}</h4>${sensor.placement?`<p class="placement">${escape(sensor.placement)}</p>`:''}</div>`:`<h4>${escape(name)}</h4><span class="registration">Not registered</span>`;
+      const values = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
+      return `<article class="sensor"><div class="sensor-heading">${photo}${heading}${battery}</div><dl>${values}</dl>${elapsed(sensor)>=300?`<div class="sensor-status"><p class="received">Received ${ageText(sensor)}</p></div>`:''}<button class="card-action" type="button" data-sensor="${sensor.id}" aria-label="Open sensor ${escape(name)}"></button></article>`;
     }
     function renderLive() {
-      const registered = sensors.filter(s => s.registered), nearby = sensors.filter(s => !s.registered);
-      live.querySelector('.phone').innerHTML = `<header><div class="top-row"><h2>Live</h2><button class="open-overview" type="button">History</button></div><p class="subtitle">Interactive wireframe · illustrative data</p></header><section><h3>Registered sensors · ${registered.length}</h3>${registered.map(card).join('')}</section>${nearby.length?`<section class="nearby"><h3>Other nearby sensors · ${nearby.length}</h3>${nearby.map(card).join('')}</section>`:''}<div class="menu-panel" role="dialog" aria-modal="true" aria-label="Sensor actions" hidden></div>`;
-      if(cleanVariant) {
-        live.querySelector('header').innerHTML = `<div class="top-row"><h2>${managing?'Sensors':'Live'}</h2><div class="top-actions">${managing?'':'<button class="open-overview" type="button">History</button>'}<button class="manage-all" type="button">${managing?'Done':'Manage'}</button></div></div><p class="subtitle">${managing?'Sensor names, placement and information':'Illustrative readings'}</p>`;
-        live.querySelector('.manage-all').onclick = () => { managing = !managing; renderLive(); live.querySelector('.manage-all').focus(); };
-        live.querySelectorAll('[data-edit]').forEach(button => { button.onclick = () => { focusedSensor = button.dataset.edit; openEditor(sensors.find(s => s.id===focusedSensor)); }; });
-        live.querySelectorAll('[data-info]').forEach(button => { button.onclick = () => { focusedSensor = button.dataset.info; openInfo(sensors.find(s => s.id===focusedSensor)); }; });
-      }
-      if(live.querySelector('.open-overview')) live.querySelector('.open-overview').onclick = () => openHistory(null);
-      live.querySelectorAll('[data-open]').forEach(button => { button.onclick = () => {
-        const sensor = sensors.find(s => s.id===button.dataset.open);
-        focusedSensor = sensor.id;
-        if(sensor.registered) openHistory(sensor.history); else openEditor(sensor);
-      }; });
-      live.querySelectorAll('[data-menu]').forEach(button => { button.onclick = () => openMenu(sensors.find(s => s.id===button.dataset.menu)); });
+      const registered = sensors.filter(sensor => sensor.registered);
+      const detected = sensors.filter(sensor => !sensor.registered && elapsed(sensor)<300);
+      const blocked = gate();
+      live.querySelector('.phone').innerHTML = `<header><div class="live-bar"><h2>Live</h2><button class="open-overview" type="button">History</button></div><p class="subtitle">Interactive prototype · illustrative data</p></header>${blocked?`<div class="gate" role="status"><p>${escape(blocked.description)} Saved data remains available.</p><button class="fix-gate" type="button">${blocked.action}</button></div>`:''}${registered.length?`<section><h3>Registered sensors · ${registered.length}</h3>${registered.map(card).join('')}</section>`:''}${detected.length?`<section class="nearby"><h3>Other nearby sensors · ${detected.length}</h3>${detected.map(card).join('')}</section>`:''}${!registered.length && !detected.length?'<p class="empty-live">No sensors received yet.</p>':''}`;
+      live.querySelector('.open-overview').onclick = () => openHistory(null);
+      live.querySelectorAll('[data-sensor]').forEach(button => { button.onclick = () => openSensor(sensors.find(sensor => sensor.id===button.dataset.sensor)); });
+      const fix = live.querySelector('.fix-gate');
+      if(fix) fix.onclick = () => { settings.transport = 'ready'; renderLive(); };
       icons();
     }
     function showLive() {
-      editSession += 1;
-      editor.hidden = true; historyContainer.hidden = true; live.hidden = false;
+      cancelUpdates(); history.historyPrototype.close(); page.sensorPagePrototype.close();
+      route = 'live'; live.hidden = false; sensorScreen.hidden = true; historyScreen.hidden = true;
       renderLive();
-      const target = cleanVariant ? (managing?live.querySelector('.manage-all'):live.querySelector('.open-overview')) : focusedSensor ? live.querySelector(`[data-menu="${focusedSensor}"]`) : live.querySelector('.open-overview');
-      if(target) target.focus({preventScroll:true});
+      const button = activeSensor?live.querySelector(`[data-sensor="${activeSensor.id}"]`):live.querySelector('.open-overview');
+      if(button) button.focus({preventScroll:true});
     }
+    function openSensor(sensor) {
+      cancelUpdates(); history.historyPrototype.close();
+      activeSensor = sensor; sensor.age = ageText(sensor);
+      route = 'sensor'; live.hidden = true; sensorScreen.hidden = false; historyScreen.hidden = true;
+      page.sensorPagePrototype.open(sensor,showLive,selected => openHistory(selected.historyIndex));
+      page.querySelector('.back').focus({preventScroll:true});
+    }
+    function status(index) {
+      const blocked = gate(); if(blocked) return blocked.title;
+      if(index===null) {
+        const targets = available();
+        if(!targets.length) return 'No compatible saved sensors';
+        if(targets.some(i => ['connecting','downloading'].includes(phases.get(i)))) return 'Updating saved sensors…';
+        const failed = targets.filter(i => ['unreachable','interrupted'].includes(phases.get(i))).length;
+        return failed?`${failed} update${failed===1?'':'s'} failed · saved data kept`:'History update complete';
+      }
+      const phase = phases.get(index);
+      const cached = byIndex(index)?.downloadedHistoryPresent;
+      if(phase==='connecting') return 'Connecting to sensor…';
+      if(phase==='downloading') return 'Downloading history · 40%';
+      if(phase==='unreachable') return cached?'Sensor unreachable · saved history shown':'No downloaded history · sensor unreachable';
+      if(phase==='interrupted') return cached?'Update interrupted · saved history shown':'Download interrupted';
+      if(phase==='empty') return cached?'No new measurements · saved history shown':'No measurements recorded';
+      return cached?'History up to date':'No downloaded history yet';
+    }
+    function presentation(index) {
+      const blocked = gate(); if(blocked) return blocked;
+      const phase = index===null?null:phases.get(index);
+      if(phase==='connecting') return {title:'Getting your history',description:'Connecting to the sensor…',loading:true};
+      if(phase==='downloading') return {title:'Downloading history',description:'40% · keep your phone near the sensor.',loading:true};
+      if(phase==='empty') return {title:'No measurements recorded',description:'The sensor was reached, but its history contains no measurements.'};
+      if(phase==='unreachable') return {title:'No downloaded history yet',description:'The sensor could not be reached. Move closer and try again.',action:'Try again'};
+      if(phase==='interrupted') return {title:'Download interrupted',description:'The transfer did not finish. Try again to retrieve the history.',action:'Try again'};
+      if(index===null && available().some(i => ['unreachable','interrupted'].includes(phases.get(i)))) return {action:'Try again'};
+      return {title:'No downloaded history yet',description:''};
+    }
+    function startUpdate(index) {
+      cancelUpdates(); activeHistoryIndex = index;
+      const token = generation;
+      const targets = index===null?available():[index];
+      targets.forEach(i => phases.set(i,'connecting'));
+      if(gate()) return;
+      targets.forEach(i => {
+        const sensor = byIndex(i);
+        const outcome = settings.outcome==='normal'?(sensor.id==='outside'?'unreachable':'success'):settings.outcome;
+        timers.push(setTimeout(() => {
+          if(token!==generation || route!=='history') return;
+          phases.set(i,outcome==='unreachable'?'unreachable':'downloading');
+          history.historyPrototype.refresh();
+        },500));
+        timers.push(setTimeout(() => {
+          if(token!==generation || route!=='history') return;
+          phases.set(i,outcome);
+          if(outcome==='success') sensor.downloadedHistoryPresent = true;
+          history.historyPrototype.refresh();
+        },1500));
+      });
+    }
+    function retry(index) { if(gate()) settings.transport = 'ready'; startUpdate(index); history.historyPrototype.refresh(); }
     function openHistory(index) {
-      live.hidden = true; editor.hidden = true; historyContainer.hidden = false;
+      page.sensorPagePrototype.close();
+      route = 'history'; live.hidden = true; sensorScreen.hidden = true; historyScreen.hidden = false;
       const labels = ['Forward cabin','SENE-7C2A','Outdoors'];
-      sensors.filter(s => s.history!==null).forEach(s => { labels[s.history] = s.name; });
-      history.historyPrototype.open(index,showLive,labels,sensors.filter(s => s.registered && s.history!==null).map(s => s.history));
+      sensors.filter(sensor => sensor.history).forEach(sensor => { labels[sensor.historyIndex] = sensor.name; });
+      const origin = index===null?null:byIndex(index);
+      history.historyPrototype.open(index,() => origin?openSensor(origin):(activeSensor=null,showLive()),labels,available(),{
+        backLabel:origin?'Back to sensor':'Back to live',
+        hasData:i => Boolean(byIndex(i)?.registered && byIndex(i)?.downloadedHistoryPresent),
+        enter:startUpdate,status,presentation,retry
+      });
       history.querySelector('.back').focus({preventScroll:true});
     }
-    function closeMenu() { live.querySelector('.menu-panel').hidden = true; live.querySelector(`[data-menu="${focusedSensor}"]`).focus({preventScroll:true}); }
-    function openMenu(sensor) {
-      focusedSensor = sensor.id;
-      const menu = live.querySelector('.menu-panel');
-      menu.innerHTML = `<h3>${escape(sensor.registered?sensor.name:sensor.broadcast)}</h3><button class="edit" type="button">${sensor.registered?'Edit local details':'Register sensor'}</button><button class="information" type="button">Sensor information</button><button class="close-menu" type="button">Close</button>`;
-      menu.hidden = false;
-      menu.querySelector('.edit').onclick = () => openEditor(sensor);
-      menu.querySelector('.information').onclick = () => openInfo(sensor);
-      menu.querySelector('.close-menu').onclick = closeMenu;
-      menu.querySelector('.edit').focus();
+    renderLive(); history.historyPrototype.close();
+    if(globalThis.Tweak) {
+      const tweak = new Tweak({container:root,onChange:() => {
+        if(route==='history') { startUpdate(activeHistoryIndex); history.historyPrototype.refresh(); }
+        else if(route==='live') renderLive();
+        else if(activeSensor) openSensor(activeSensor);
+      }});
+      tweak.addSelect(settings,'transport',{label:'Demo Bluetooth / permission',options:[{label:'Available',value:'ready'},{label:'Bluetooth off',value:'bluetooth'},{label:'Permission missing',value:'permission'},{label:'Permission denied in settings',value:'settings'}]});
+      tweak.addSelect(settings,'outcome',{label:'Demo history result',options:[{label:'Normal (outdoor unreachable)',value:'normal'},{label:'Sensor unreachable',value:'unreachable'},{label:'Sensor history empty',value:'empty'},{label:'Transfer interrupted',value:'interrupted'}]});
+      tweak.addSlider(settings,'elapsedMinutes',{label:'Demo minutes without updates',min:0,max:10,step:1,unit:'min'});
     }
-    function openEditor(sensor) {
-      const session = ++editSession;
-      live.hidden = true; historyContainer.hidden = true; editor.hidden = false;
-      imageDraft = sensor.photo;
-      editor.innerHTML = `<button class="cancel" type="button">← Live</button><h2>${sensor.registered?'Edit sensor':'Register sensor'}</h2><form><label for="nav-name">Local name</label><input id="nav-name" name="localName" value="${escape(sensor.registered?sensor.name:sensor.broadcast)}"><p class="hint">Used only in this app. Leave blank to use the broadcast name.</p><label for="nav-placement">Placement · optional</label><input id="nav-placement" name="placement" value="${escape(sensor.placement)}" placeholder="For example, above the wardrobe"><label>Photo · optional</label><div class="photo-state"></div><div class="actions"><button class="choose-photo" type="button">Choose photo</button><button class="remove-photo" type="button">Remove photo</button></div><input class="photo-file" type="file" accept="image/*" aria-label="Choose sensor photo" hidden><p class="hint">Changes in this demo last only until it is reloaded.</p><div class="actions"><button class="save" type="button">${sensor.registered?'Save changes':'Register'}</button><button class="cancel" type="button">Cancel</button></div></form>`;
-      const preview = () => {
-        editor.querySelector('.photo-state').innerHTML = imageDraft==='sample'?'<p class="hint">Sample photo attached</p>':imageDraft?`<img class="photo-preview" src="${escape(imageDraft)}" alt="Selected sensor photo">`:'<p class="hint">No photo</p>';
-        editor.querySelector('.remove-photo').hidden = !imageDraft;
-      };
-      preview();
-      editor.querySelectorAll('.cancel').forEach(button => { button.onclick = showLive; });
-      editor.querySelector('.choose-photo').onclick = () => editor.querySelector('.photo-file').click();
-      editor.querySelector('.remove-photo').onclick = () => { imageDraft = null; preview(); };
-      editor.querySelector('.photo-file').onchange = event => {
-        const file = event.target.files[0];
-        if(!file || !file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = () => { if(editor.hidden || session!==editSession) return; imageDraft = reader.result; preview(); };
-        reader.readAsDataURL(file);
-      };
-      editor.querySelector('.save').onclick = event => {
-        event.preventDefault();
-        sensor.name = editor.querySelector('#nav-name').value.trim() || sensor.broadcast;
-        sensor.placement = editor.querySelector('#nav-placement').value.trim();
-        sensor.photo = imageDraft;
-        sensor.registered = true;
-        showLive();
-      };
-      editor.querySelector('#nav-name').focus({preventScroll:true});
-      if(cleanVariant && managing) editor.querySelector('.cancel').textContent = '← Sensors';
-    }
-    function openInfo(sensor) {
-      live.hidden = true; editor.hidden = false;
-      const row = (label,value) => `<div class="info-row"><dt>${label}</dt><dd>${escape(value)}</dd></div>`;
-      editor.innerHTML = `<button class="back-live" type="button">← Live</button><h2>Sensor information</h2><dl>${row('Broadcast name',sensor.broadcast)}${row('Local name',sensor.registered?sensor.name:'Not registered')}${row('Placement',sensor.placement||'Not set')}${row('History',sensor.history===null?'Not supported':'Supported')}${row('Last reception',sensor.age+' ago')}${row('Battery',sensor.battery===null?'Not reported':sensor.battery+'%')}</dl><p class="hint">Illustrative sensor information</p>`;
-      editor.querySelector('.back-live').onclick = showLive;
-      if(cleanVariant && managing) editor.querySelector('.back-live').textContent = '← Sensors';
-      editor.querySelector('.back-live').focus({preventScroll:true});
-    }
-    root.addEventListener('keydown',event => {
-      const menu = live.querySelector('.menu-panel');
-      if(live.hidden || !menu || menu.hidden) return;
-      if(event.key==='Escape') { event.preventDefault(); closeMenu(); }
-      if(event.key==='Tab') {
-        const buttons = [...menu.querySelectorAll('button')];
-        if(event.shiftKey && document.activeElement===buttons[0]) { event.preventDefault(); buttons[buttons.length-1].focus(); }
-        else if(!event.shiftKey && document.activeElement===buttons[buttons.length-1]) { event.preventDefault(); buttons[0].focus(); }
-      }
-    });
-    renderLive();
   })();
 </script>

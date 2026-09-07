@@ -70,6 +70,12 @@
     #boat-history-wireframe .cursor-mark { fill:var(--boat-bg); stroke:var(--boat-ink); stroke-width:2; }
     #boat-history-wireframe .detail-legend { position:absolute; z-index:2; top:54px; right:20px; font-size:12px; background:var(--boat-bg); padding:0 4px; }
     #boat-history-wireframe .detail .status { position:absolute; top:42px; left:56px; font-size:11px; background:var(--boat-bg); }
+    #boat-history-wireframe .detail .retry { position:absolute; z-index:6; right:20px; bottom:10px; font-size:12px; background:var(--boat-bg); }
+    #boat-history-wireframe .history-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; }
+    #boat-history-wireframe .history-empty h3 { font-size:20px; font-weight:500; margin:8px 0; }
+    #boat-history-wireframe .history-empty p { margin:8px 0; max-width:420px; }
+    #boat-history-wireframe .detail .history-empty .retry { position:static; margin-top:12px; }
+    #boat-history-wireframe .history-empty progress { width:160px; height:6px; accent-color:var(--boat-ink); }
     @media(max-width:440px) { #boat-history-wireframe .detail h2 { max-width:125px; } #boat-history-wireframe .overlay-bar button { font-size:12px; padding:4px; } }
   </style>
   <section class="phone">
@@ -91,6 +97,7 @@
       <div class="timeline-labels"><span>Mar 2026</span><span>Aug 2026</span></div>
       </div>
       <p class="note status" aria-live="polite">Updating saved sensors… · demo</p>
+      <button class="retry" type="button" hidden>Try again</button>
     </header>
     <div class="content"></div>
     <div class="time-dock" hidden></div>
@@ -103,6 +110,7 @@
     (() => {
       const root = document.getElementById('boat-history-wireframe');
       const content = root.querySelector('.content');
+      const retryButton = root.querySelector('.retry');
       const timeNavigation = root.querySelector('.time-navigation');
       const names = ['Forward cabin', 'Dinette', 'Outdoors'];
       const escapeMarkup = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -113,6 +121,9 @@
       let directEntry = false;
       let visibleSensors = [0,1,2];
       let detailGeometry = null;
+      let connected = null;
+      const hasData = index => !connected || connected.hasData(index);
+      const comparisonFor = index => visibleSensors.find(i => i!==index && i===2 && hasData(i)) ?? visibleSensors.find(i => i!==index && hasData(i)) ?? null;
       const lastDay = 183;
       const minimumSpan = 35;
       const dateLabel = day => new Date(Date.UTC(2026,2,1+day)).toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'});
@@ -143,22 +154,32 @@
         let cursor = '';
         if (large && state.inspected !== null && state.inspected >= state.start && state.inspected <= state.end) {
           const x = (left+right)/2;
-          const sources = state.compare ? [index,index===2?0:2] : [index];
+          const sources = state.compare ? [index,comparisonFor(index)] : [index];
           cursor = `<line class="cursor-line" x1="${x}" x2="${x}" y1="${top}" y2="${bottom}"/>`+sources.map(i => `<circle class="cursor-mark" cx="${x}" cy="${bottom-(daily[metric][i][state.inspected]-minimum)/(maximum-minimum)*(bottom-top)}" r="4"/>`).join('');
         }
-        return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Illustrative ${metric} trend for ${escapeMarkup(names[index])}. Fixed center cursor. Drag the chart to inspect samples; pinch to zoom around the cursor."><text x="0" y="12">${units[metric]}</text><line class="grid" x1="${left}" y1="${top}" x2="${right}" y2="${top}"/><line class="grid" x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}"/><text x="${left-6}" y="${top+4}" text-anchor="end">${maximum}</text><text x="${left-6}" y="${bottom+4}" text-anchor="end">${minimum}</text><polyline class="trend" points="${points(index)}"/>${large && state.compare ? `<polyline class="trend comparison" points="${points(index===2?0:2)}"/>` : ''}${cursor}<text x="${left}" y="${height-4}">${dateLabel(state.start)}</text><text x="${right}" y="${height-4}" text-anchor="end">${dateLabel(state.end)}</text></svg>`;
+        return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Illustrative ${metric} trend for ${escapeMarkup(names[index])}. Fixed center cursor. Drag the chart to inspect samples; pinch to zoom around the cursor."><text x="0" y="12">${units[metric]}</text><line class="grid" x1="${left}" y1="${top}" x2="${right}" y2="${top}"/><line class="grid" x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}"/><text x="${left-6}" y="${top+4}" text-anchor="end">${maximum}</text><text x="${left-6}" y="${bottom+4}" text-anchor="end">${minimum}</text><polyline class="trend" points="${points(index)}"/>${large && state.compare ? `<polyline class="trend comparison" points="${points(comparisonFor(index))}"/>` : ''}${cursor}<text x="${left}" y="${height-4}">${dateLabel(state.start)}</text><text x="${right}" y="${height-4}" text-anchor="end">${dateLabel(state.end)}</text></svg>`;
       }
       function render() {
         const detail = state.selected !== null;
         const route = detail ? `sensor-${state.selected}` : 'overview';
         if (updateRoute !== route) {
           updateRoute = route;
+          if(connected) connected.enter(state.selected);
+          else {
           clearTimeout(updateTimer);
           root.querySelector('.status').textContent = detail ? 'Updating sensor… · demo' : 'Updating saved sensors… · demo';
           updateTimer = setTimeout(() => {
             root.querySelector('.status').textContent = detail ? (state.selected===2?'Sensor unreachable · saved history shown · demo':'Update complete · demo') : `${visibleSensors.length-(visibleSensors.includes(2)?1:0)} updated${visibleSensors.includes(2)?' · '+names[2]+' unreachable · saved data shown':''} · demo`;
           },1600);
+          }
         }
+        const dataVisible = detail ? hasData(state.selected) : visibleSensors.some(hasData);
+        if(comparisonFor(state.selected)===null) state.compare = false;
+        if(connected) root.querySelector('.status').textContent = connected.status(state.selected);
+        const presentation = connected ? connected.presentation(state.selected) : null;
+        retryButton.hidden = !presentation || !presentation.action;
+        if(presentation) retryButton.textContent = presentation.action || 'Try again';
+        root.querySelector('.controls').hidden = !dataVisible;
         if (detail) {
           const span = state.end-state.start;
           state.inspected = Math.max(0,Math.min(lastDay,Math.round((state.start+state.end)/2)));
@@ -168,16 +189,16 @@
         root.querySelector('.phone').classList.toggle('detail',detail);
         root.querySelector('.prototype-label').hidden = detail;
         root.querySelector('.time-dock').hidden = true;
-        root.querySelector('.overlay-bar').hidden = !detail;
+        root.querySelector('.overlay-bar').hidden = !detail || !dataVisible || comparisonFor(state.selected)===null;
         root.querySelector('.detail-legend').hidden = !detail || !state.compare;
-        root.querySelector('.detail-legend').textContent = detail && state.compare ? `— ${names[state.selected]} · – – ${names[state.selected===2?0:2]}` : '';
+        root.querySelector('.detail-legend').textContent = detail && state.compare ? `— ${names[state.selected]} · – – ${names[comparisonFor(state.selected)]}` : '';
         root.querySelector('.overlay-compare').setAttribute('aria-pressed',String(state.compare));
-        root.querySelector('.overlay-compare').setAttribute('aria-label',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[state.selected===2?0:2])}`);
-        root.querySelector('.overlay-compare').setAttribute('data-tooltip',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[state.selected===2?0:2])}`);
+        root.querySelector('.overlay-compare').setAttribute('aria-label',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[comparisonFor(state.selected)])}`);
+        root.querySelector('.overlay-compare').setAttribute('data-tooltip',state.compare?'Remove comparison':`Compare with ${escapeMarkup(names[comparisonFor(state.selected)])}`);
         const readout = root.querySelector('.sample-readout');
-        readout.hidden = !detail || state.inspected === null;
+        readout.hidden = !detail || !dataVisible || state.inspected === null;
         if (!readout.hidden) {
-          const sources = state.compare ? [state.selected,state.selected===2?0:2] : [state.selected];
+          const sources = state.compare ? [state.selected,comparisonFor(state.selected)] : [state.selected];
           readout.innerHTML = `<div>${dateLabel(state.inspected)} 2026 · 00:00 UTC · demo sample</div>`+sources.map(i => `<p>${escapeMarkup(names[i])}: ${daily.temperature[i][state.inspected]} °C · ${daily.humidity[i][state.inspected]} % · ${daily.pressure[i][state.inspected]} hPa</p>`).join('');
         }
         const timeParent = detail ? root.querySelector('.time-dock') : root.querySelector('header');
@@ -186,21 +207,29 @@
           else timeParent.insertBefore(timeNavigation,root.querySelector('.status'));
         }
         root.querySelector('.back').hidden = !detail && !externalBack;
-        root.querySelector('.back').setAttribute('aria-label',externalBack && (directEntry || !detail)?'Back to live':'Back to history overview');
+        root.querySelector('.back').setAttribute('aria-label',externalBack && (directEntry || !detail)?(connected?.backLabel || 'Back to live'):'Back to history overview');
         root.querySelector('h2').textContent = detail ? names[state.selected] : 'History';
-        root.querySelector('.status').hidden = false;
+        root.querySelector('.status').hidden = detail && !dataVisible;
+        timeNavigation.hidden = !dataVisible;
         root.querySelector('.dates').textContent = `${dateLabel(state.start)} – ${dateLabel(state.end)} 2026 · ${state.end-state.start+1} days`;
         root.querySelector('.window').style.left = `${Math.max(0,state.start)/lastDay*100}%`;
         root.querySelector('.window').style.width = `${(Math.min(lastDay,state.end)-Math.max(0,state.start))/lastDay*100}%`;
         const metric = root.querySelector('.metric').value;
         const summary = i => `Recorded min ${Math.min(...values(i))} ${units[metric]} · max ${Math.max(...values(i))} ${units[metric]}`;
-        if (detail) {
+        if(detail && !dataVisible) {
+          const view = presentation || {title:'No downloaded history yet',description:''};
+          content.innerHTML = `<div class="history-empty">${view.loading?'<progress aria-label="Updating history"></progress>':''}<h3>${escapeMarkup(view.title)}</h3><p>${escapeMarkup(view.description)}</p></div>`;
+        } else if (detail) {
           content.innerHTML = `<div class="detail-plot">${chart(state.selected,true)}</div>`;
         } else {
-          content.innerHTML = names.map((name,i) => visibleSensors.includes(i) ? `<button class="sensor" type="button" data-sensor="${i}" aria-label="Open ${escapeMarkup(name)} history"><span class="sensor-head"><span>${escapeMarkup(name)}</span><span aria-hidden="true">→</span></span>${chart(i,false)}<span class="summary">${summary(i)}</span></button>` : '').join('');
+          content.innerHTML = names.map((name,i) => visibleSensors.includes(i) ? `<button class="sensor" type="button" data-sensor="${i}" aria-label="Open ${escapeMarkup(name)} history"><span class="sensor-head"><span>${escapeMarkup(name)}</span><span aria-hidden="true">→</span></span>${hasData(i)?chart(i,false):''}<span class="summary">${hasData(i)?summary(i):escapeMarkup(connected.status(i))}</span></button>` : '').join('');
+          if(!visibleSensors.length) content.innerHTML = '<div class="history-empty"><h3>No history-enabled sensors</h3><p>Register a compatible sensor to view its history.</p></div>';
           content.querySelectorAll('[data-sensor]').forEach(button => { button.onclick = () => { state.selected = Number(button.dataset.sensor); state.compare = false; content.scrollTop = 0; render(); }; });
         }
+        const retryParent = detail ? (dataVisible?root.querySelector('.phone'):content.querySelector('.history-empty')) : root.querySelector('header');
+        retryParent.appendChild(retryButton);
       }
+      retryButton.onclick = () => { if(connected) connected.retry(state.selected); };
       root.querySelector('.back').onclick = () => {
         if (externalBack && (directEntry || state.selected === null)) { externalBack(); return; }
         const span = Math.min(lastDay,Math.max(1,Math.round(state.end-state.start)));
@@ -213,7 +242,7 @@
       function plotFraction(x) {
         const bounds = content.querySelector('svg').getBoundingClientRect();
         const local = (x-bounds.left)/bounds.width*detailGeometry.width;
-        return Math.max(0,Math.min(1,(local-detailGeometry.left)/(detailGeometry.right-detailGeometry.left)));
+        return (local-detailGeometry.left)/(detailGeometry.right-detailGeometry.left);
       }
       function setRange(start,span) {
         span = Math.max(1,Math.min(lastDay,span));
@@ -231,7 +260,7 @@
         gesture = {start:state.start,span:state.end-state.start,x,y:positions[0].y,fraction:plotFraction(x),distance:positions.length>1?Math.max(1,Math.hypot(positions[1].x-positions[0].x,positions[1].y-positions[0].y)):0,moved:!tapAllowed};
       }
       content.onpointerdown = event => {
-        if (state.selected === null || event.button !== 0) return;
+        if (state.selected === null || !hasData(state.selected) || event.button !== 0) return;
         pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
         content.setPointerCapture(event.pointerId);
         beginGesture(pointers.size===1);
@@ -258,7 +287,7 @@
       content.onpointerup = event => endPointer(event,false);
       content.onpointercancel = content.onlostpointercapture = event => endPointer(event,true);
       content.addEventListener('wheel',event => {
-        if (state.selected === null) return;
+        if (state.selected === null || !hasData(state.selected)) return;
         event.preventDefault();
         const span = state.end-state.start;
         if (Math.abs(event.deltaX)>Math.abs(event.deltaY)) setRange(state.start+event.deltaX/600*span,span);
@@ -301,7 +330,9 @@
       root.querySelector('.all-time').onclick = () => { state.start = 0; state.end = lastDay; render(); };
       render();
       root.historyPrototype = {
-        open(index,onBack,labels,available) {
+        open(index,onBack,labels,available,context=null) {
+          connected = context;
+          clearTimeout(updateTimer);
           labels.forEach((label,i) => { names[i] = label; });
           visibleSensors = available;
           externalBack = onBack;
@@ -310,10 +341,12 @@
           state.compare = false;
           updateRoute = null;
           render();
-        }
+        },
+        refresh() { render(); },
+        close() { clearTimeout(updateTimer); pointers.clear(); gesture = null; }
       };
       new ResizeObserver(render).observe(content);
-      if (globalThis.Tweak) {
+      if (globalThis.Tweak && !root.hasAttribute('data-embedded')) {
         const tweak = new Tweak({container:root,onChange:render});
         tweak.addSelect(state,'density',{label:'Overview chart density',options:['comfortable','compact']});
       }

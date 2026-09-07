@@ -1,38 +1,48 @@
 # Connected UX prototype
 
-Status: first connected version for product owner review. No Android application code is changed.
+Status: current integrated version, 2026-09-07, built after checkpoint commit `bcac193`. No Android application code is changed.
 
 ## Entry point and sources
 
-Open `wireframes/prototype.html` in the conversation preview. This combines the reviewed `live.html` and `history.html` fragments with `navigation-shell.html`, which owns navigation and temporary sensor metadata.
+The active preview is `wireframes/prototype.html`. The builder combines `live-v2.html`, `sensor-detail-v2.html`, and `history.html` with `prototype-v2-shell.html`, which owns shared example state, navigation, and simulated update outcomes.
 
-Rebuild after changing a source fragment:
+Rebuild after editing a source:
 
 ```text
 python3 docs/ux/wireframes/build_prototype.py
 ```
 
-## Implemented review paths
+Earlier navigation shells and `prototype-clean.html` remain historical references. The builder no longer publishes the rejected clean variant.
 
-- Tap a registered history-capable live card → individual landscape history → back to live.
-- Open general History → overview of compatible registered sensors → individual history → back to overview → back to live.
-- Open the card's overflow menu → edit local details or read sensor information. Live-only sensors expose the same secondary menu without a history action.
-- Tap an unregistered sensor or choose Register in its menu → prefilled registration editor → save → registered live card.
-- Edit name, optional placement, and optional image → save updates the live card and local history labels. Cancel leaves the existing metadata unchanged.
-- View sensor information to distinguish the unchanged broadcast name from the edited local name.
+## Connected paths
 
-History retains the fixed cursor, gestures, and comparison from the existing wireframe. Simulated automatic updating reports an unreachable outdoor sensor and retains its illustrative historical data. A newly registered demo sensor appears in the general history overview.
+- Every live card opens its sensor page, including unregistered and live-only sensors.
+- Sensor page → history starts an automatic update. Back returns to that sensor page, then live.
+- General History → overview updates all compatible registered sensors. A chart returns to the overview; leaving the overview returns to live.
+- Pencil actions open single-field dialogs. Save updates local metadata across screens; Cancel leaves it unchanged. The broadcast name remains separate.
+- Photo selection and removal are available on the sensor page. Chosen image contents stay in the preview.
+- Registration uses the broadcast name and reveals local editing on the same page.
+- Removal confirms loss of local metadata and downloaded history. Re-registration does not restore deleted historical data.
 
-## Prototype choices for review
+## State simulation
 
-- A top-level History button, card overflow menu, and a compact actions dialog provide navigation; their exact appearance is not yet a separate approved design decision.
-- Blank local names fall back to the broadcast name in this experiment. Final name validation is still open.
-- Local images can be chosen for preview, replaced, or removed. They are read in the page and are not uploaded.
-- Metadata lives only in memory until reload. Demonstration history is preloaded even for the initially unregistered sensor.
-- Sensor information contains only relevant known demo facts, not invented firmware versions or real addresses.
+The default examples include a reachable cabin with saved history, an unreachable outdoor sensor with saved history, a live-only technical sensor, and an unregistered sensor without downloaded history.
+
+Opening history starts a short simulated connection/transfer. Saved charts remain usable. A successful first download makes illustrative history available; unreachable, empty, or interrupted results do not fabricate samples. Comparison includes only registered sensors with available history.
+
+Optional preview controls adjust Bluetooth/permission availability, history outcome, and elapsed minutes without advertisements. These are review controls, not app settings. Live reception age is hidden until five minutes; unregistered sensors disappear at that threshold. Saved readings remain available when updates or prerequisites fail. Enable/access actions resolve only simulated conditions and do not operate device settings.
 
 ## Verification
 
-Browser walkthrough on 2026-09-05 verified direct live-to-history return, overview/detail return nesting, registration with a changed name and placement, transition into the registered list, unchanged broadcast name, cancellation of an edit, and access to the secondary menu for a live-only sensor. Live and landscape detail layouts were visually inspected. The save action was adjusted to work inside the preview sandbox.
+Browser walkthrough verified live → sensor → history returns, overview/detail return nesting, local-name propagation, same-page registration, first-download progress/success, cancellation of removal, removal followed by re-registration, and the absence of deleted history when a sensor is unreachable. Saved-history fallback and landscape chart layout were visually checked.
 
-Still unverified: native phone rotation, actual BLE updates, touch behavior on hardware, and local file-picker interaction. No real device data is used. The prototype does not implement sensor removal, history deletion, device controls, or security enrollment; their semantics remain unresolved design work.
+JavaScriptCore checks covered source syntax, automatic updates, empty/interrupted outcomes, Bluetooth/permission/settings actions, the five-minute rule, and cancellation of pending updates when leaving history.
+
+## Limits and implementation choices
+
+- State and images live in preview memory only. D27 requires production persistence across restarts; browser reload resets the examples.
+- Historical curves and Bluetooth addresses are illustrative. Example history is predefined separately from the live readings.
+- Timings, daily sample resolution, battery icon thresholds, and blank-name fallback are prototype choices.
+- Leaving history cancels pending simulated transfers; final production cancellation/retry behavior remains open.
+- Native rotation, BLE transfer, mobile touch/keyboard behavior, file-picker behavior, and OS permission prompts are not verified by this browser walkthrough.
+- Device controls, security enrollment, retention controls, and critical-period analysis are not implemented.

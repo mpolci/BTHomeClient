@@ -4,7 +4,7 @@
     #boat-sensor-detail-v2 * { box-sizing:border-box; }
     #boat-sensor-detail-v2 .phone { width:100%; max-width:390px; margin:auto; padding:16px; border:1px solid var(--sensor-border); border-radius:20px; background:var(--sensor-bg); }
     #boat-sensor-detail-v2 .bar { display:flex; align-items:center; gap:12px; margin-bottom:18px; min-height:44px; }
-    #boat-sensor-detail-v2 .back { font-size:20px; }
+    #boat-sensor-detail-v2 .back { font-size:20px; min-width:44px; min-height:44px; padding:0; border:0; background:transparent; }
     #boat-sensor-detail-v2 .bar-label { font-size:16px; }
     #boat-sensor-detail-v2 .identity { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
     #boat-sensor-detail-v2 .photo { width:60px; height:60px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:1px solid var(--sensor-border); border-radius:8px; color:var(--sensor-muted); font-size:12px; }
@@ -60,6 +60,10 @@
     (() => {
       const root = document.getElementById('boat-sensor-detail-v2');
       const state = {example:'liveOnly'};
+      let connectedSensor = null;
+      let connectedBack = null;
+      let connectedHistory = null;
+      const currentSensor = () => connectedSensor || examples[state.example];
       const dialog = root.querySelector('dialog');
       const removalDialog = root.querySelector('.removal-dialog');
       let removalTarget = null;
@@ -74,12 +78,15 @@
       };
       Object.values(examples).forEach(sensor => { sensor.downloadedHistoryPresent = sensor.registered && sensor.history; });
       function render() {
-        const sensor = examples[state.example];
+        const sensor = currentSensor();
         const measurements = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
-        const history = !sensor.registered ? '<div class="history"><button class="action primary register" type="button">Register sensor</button></div>' : sensor.history ? `<div class="history"><div class="action primary">Open history →</div><p class="hint">${sensor.downloadedHistoryPresent?'Updates automatically when opened.':'No history downloaded. Downloads when opened.'}</p></div>` : '<div class="history"><p class="hint">This sensor does not store history.</p></div>';
+        const history = !sensor.registered ? '<div class="history"><button class="action primary register" type="button">Register sensor</button></div>' : sensor.history ? `<div class="history"><button class="action primary open-history" type="button">Open history →</button><p class="hint">${sensor.downloadedHistoryPresent?'Updates automatically when opened.':'No history downloaded. Downloads when opened.'}</p></div>` : '<div class="history"><p class="hint">This sensor does not store history.</p></div>';
         const editButton = field => sensor.registered?`<button class="edit-field" type="button" data-field="${field}" aria-label="Edit ${field==='name'?'local name':'placement'}"><i data-lucide="pencil" aria-hidden="true"></i></button>`:'';
         const photo = sensor.registered?`<div class="photo-column"><button class="photo choose-photo" type="button" aria-label="${sensor.photo?'Change sensor photo':'Add sensor photo'}">${typeof sensor.photo==='string'?`<img src="${escape(sensor.photo)}" alt="Sensor photo">`:`<i data-lucide="${sensor.photo?'image':'image-plus'}" aria-hidden="true"></i><span>${sensor.photo?'Photo':'Add photo'}</span>`}</button>${sensor.photo?'<button class="remove-photo" type="button">Remove</button>':''}</div>`:'';
-        root.querySelector('.phone').innerHTML = `<div class="bar"><span class="back" aria-hidden="true">←</span><span class="bar-label">Sensor</span></div><div class="identity">${photo}<div class="identity-text"><div class="editable-row"><h2>${escape(sensor.name)}${editButton('name')}</h2></div>${sensor.registered?`<div class="editable-row"><p class="placement">${escape(sensor.placement || 'Add placement')}${editButton('placement')}</p></div>`:''}${sensor.registered?'':'<span class="registration">Not registered</span>'}</div></div><section class="readings" aria-label="Latest readings"><dl class="measurements">${measurements}</dl></section><section aria-label="Sensor information"><dl class="status"><div><dt>Last received</dt><dd>${sensor.age}</dd></div>${sensor.battery===null?'':`<div><dt>Sensor battery</dt><dd class="battery"><i data-lucide="battery-full" aria-hidden="true"></i>${sensor.battery}%</dd></div>`}</dl><dl class="facts"><div><dt>Broadcast name</dt><dd>${sensor.broadcast}</dd></div><div><dt>Bluetooth address</dt><dd>${sensor.address}</dd></div><div><dt>History support</dt><dd>${sensor.history?'Available':'Not supported'}</dd></div></dl></section>${history}${sensor.registered?'<div class="removal-area"><button class="remove-sensor" type="button">Remove sensor</button></div>':''}<footer>Screen wireframe · illustrative data and addresses</footer>`;
+        root.querySelector('.phone').innerHTML = `<div class="bar"><button class="back" type="button" aria-label="Back to live">←</button><span class="bar-label">Sensor</span></div><div class="identity">${photo}<div class="identity-text"><div class="editable-row"><h2>${escape(sensor.name)}${editButton('name')}</h2></div>${sensor.registered?`<div class="editable-row"><p class="placement">${escape(sensor.placement || 'Add placement')}${editButton('placement')}</p></div>`:''}${sensor.registered?'':'<span class="registration">Not registered</span>'}</div></div><section class="readings" aria-label="Latest readings"><dl class="measurements">${measurements}</dl></section><section aria-label="Sensor information"><dl class="status"><div><dt>Last received</dt><dd>${sensor.age}</dd></div>${sensor.battery===null?'':`<div><dt>Sensor battery</dt><dd class="battery"><i data-lucide="battery-full" aria-hidden="true"></i>${sensor.battery}%</dd></div>`}</dl><dl class="facts"><div><dt>Broadcast name</dt><dd>${sensor.broadcast}</dd></div><div><dt>Bluetooth address</dt><dd>${sensor.address}</dd></div><div><dt>History support</dt><dd>${sensor.history?'Available':'Not supported'}</dd></div></dl></section>${history}${sensor.registered?'<div class="removal-area"><button class="remove-sensor" type="button">Remove sensor</button></div>':''}<footer>Screen wireframe · illustrative data and addresses</footer>`;
+        root.querySelector('.back').onclick = () => { if(connectedBack) connectedBack(); };
+        const openHistory = root.querySelector('.open-history');
+        if(openHistory) openHistory.onclick = () => { if(connectedHistory) connectedHistory(sensor); };
         root.querySelectorAll('[data-field]').forEach(button => { button.onclick = () => {
           editedField = button.dataset.field;
           root.querySelector('#sensor-field-label').textContent = editedField==='name'?'Name in this app':'Placement · optional';
@@ -105,7 +112,7 @@
       root.querySelector('.cancel-removal').onclick = () => { removalTarget = null; removalDialog.close(); };
       removalDialog.addEventListener('cancel',() => { removalTarget = null; });
       root.querySelector('.confirm-removal').onclick = () => {
-        if(!removalTarget || removalTarget!==examples[state.example]) return;
+        if(!removalTarget || removalTarget!==currentSensor()) return;
         const sensor = removalTarget;
         photoRevision += 1;
         sensor.registered = false;
@@ -117,7 +124,7 @@
         root.querySelector('.register').focus();
       };
       root.querySelector('.save-field').onclick = () => {
-        const sensor = examples[state.example];
+        const sensor = currentSensor();
         sensor[editedField] = input.value.trim() || (editedField==='name'?sensor.broadcast:'');
         dialog.close(); render(); root.querySelector(`[data-field="${editedField}"]`).focus();
       };
@@ -125,14 +132,18 @@
       root.querySelector('.photo-file').onchange = event => {
         const file = event.target.files[0];
         if(!file || !file.type.startsWith('image/')) return;
-        const sensor = examples[state.example];
+        const sensor = currentSensor();
         const revision = ++photoRevision;
         const reader = new FileReader();
-        reader.onload = () => { if(revision!==photoRevision || sensor!==examples[state.example]) return; sensor.photo = reader.result; render(); };
+        reader.onload = () => { if(revision!==photoRevision || sensor!==currentSensor()) return; sensor.photo = reader.result; render(); };
         reader.readAsDataURL(file); event.target.value = '';
       };
       render();
-      if(globalThis.Tweak) {
+      root.sensorPagePrototype = {
+        open(sensor,onBack,onHistory) { connectedSensor = sensor; connectedBack = onBack; connectedHistory = onHistory; photoRevision += 1; dialog.close(); removalDialog.close(); removalTarget = null; render(); },
+        close() { photoRevision += 1; dialog.close(); removalDialog.close(); removalTarget = null; }
+      };
+      if(globalThis.Tweak && !root.hasAttribute('data-embedded')) {
         const tweak = new Tweak({container:root,onChange:() => { photoRevision += 1; removalTarget = null; dialog.close(); removalDialog.close(); render(); }});
         tweak.addSelect(state,'example',{label:'Sensor example',options:[{label:'Registered · history',value:'registered'},{label:'Detected · unregistered',value:'detected'},{label:'Registered · live only',value:'liveOnly'}]});
       }

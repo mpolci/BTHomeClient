@@ -1,6 +1,6 @@
 # Revised live screen
 
-Status: current screen-by-screen design direction; the first live-only wireframe is ready for review. The connected prototype is deliberately not rebuilt in this step.
+Status: current approved live-screen direction, now connected through `wireframes/prototype.html`.
 
 ## Confirmed direction
 
@@ -26,4 +26,4 @@ The revised card destination supersedes direct live-card-to-history navigation. 
 
 ## Scope of this iteration
 
-This is a static layout wireframe for one screen, using illustrative readings. Card navigation is intentionally not wired yet. The earlier connected `prototype.html` remains available as a previous iteration and does not represent this revised navigation direction.
+This is a static layout wireframe for one screen, using illustrative readings. The standalone file remains layout-only. The current connected `prototype.html` implements the revised sensor-page destination and shared state.
