@@ -1,0 +1,25 @@
+<div id="boat-dark-palettes" aria-label="Three dark Material palette proposals">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+    #boat-dark-palettes { font-family:Roboto,system-ui,sans-serif; }
+    #boat-dark-palettes * { box-sizing:border-box; }
+    #boat-dark-palettes .sample { color-scheme:dark; --palette-bg:light-dark(#faf9f6,#141414); --palette-card:light-dark(#efeeeb,#232323); --palette-ink:light-dark(#202020,#e8e8e6); --palette-muted:light-dark(#555550,#bdbdb7); --palette-border:light-dark(#c8c7c1,#484844); --palette-accent:light-dark(#e2e1db,#3b3b36); --palette-on-accent:light-dark(#23231f,#e7e7de); width:100%; max-width:412px; margin:0 auto 18px; padding:18px; border-radius:20px; background:var(--palette-bg); color:var(--palette-ink); border:1px solid var(--palette-border); }
+    #boat-dark-palettes .petrol { --palette-bg:light-dark(#f5faf6,#111916); --palette-card:light-dark(#e7f0e9,#1e2a25); --palette-ink:light-dark(#19211c,#e0e9e1); --palette-muted:light-dark(#46534a,#b9c8bd); --palette-border:light-dark(#bdcec1,#3e5145); --palette-accent:light-dark(#cdebdc,#2c4b3d); --palette-on-accent:light-dark(#102f22,#c4eed7); }
+    #boat-dark-palettes .amber { --palette-bg:light-dark(#fff8f0,#1a1611); --palette-card:light-dark(#f6ecdf,#2b251c); --palette-ink:light-dark(#251e15,#eee4d5); --palette-muted:light-dark(#5c4f3d,#cec0aa); --palette-border:light-dark(#d5c4a9,#554837); --palette-accent:light-dark(#ffddb0,#594329); --palette-on-accent:light-dark(#342009,#ffdfb3); }
+    #boat-dark-palettes header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:16px; }
+    #boat-dark-palettes h2 { margin:0; font-size:20px; line-height:28px; font-weight:400; }
+    #boat-dark-palettes .action { display:inline-flex; align-items:center; min-height:40px; padding:0 18px; border-radius:24px; background:var(--palette-accent); color:var(--palette-on-accent); font-size:14px; font-weight:500; }
+    #boat-dark-palettes .sensor { padding:16px; border-radius:12px; background:var(--palette-card); }
+    #boat-dark-palettes .sensor-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    #boat-dark-palettes h3 { font-size:16px; line-height:24px; font-weight:500; margin:0; }
+    #boat-dark-palettes .battery { color:var(--palette-muted); }
+    #boat-dark-palettes .battery svg { width:16px; height:16px; stroke-width:1.5; }
+    #boat-dark-palettes dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:16px 0 0; }
+    #boat-dark-palettes dt { font-size:12px; line-height:16px; color:var(--palette-muted); margin-bottom:4px; }
+    #boat-dark-palettes dd { font-size:24px; line-height:32px; margin:0; font-variant-numeric:tabular-nums; }
+    #boat-dark-palettes dd span { font-size:12px; color:var(--palette-muted); }
+  </style>
+  <section class="sample"><header><h2>1 · Graphite</h2><span class="action">History</span></header><article class="sensor"><div class="sensor-heading"><h3>Forward cabin</h3><span class="battery" role="img" aria-label="Battery high"><i data-lucide="battery-full" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl></article></section>
+  <section class="sample petrol"><header><h2>2 · Petrol</h2><span class="action">History</span></header><article class="sensor"><div class="sensor-heading"><h3>Forward cabin</h3><span class="battery" role="img" aria-label="Battery high"><i data-lucide="battery-full" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl></article></section>
+  <section class="sample amber"><header><h2>3 · Amber</h2><span class="action">History</span></header><article class="sensor"><div class="sensor-heading"><h3>Forward cabin</h3><span class="battery" role="img" aria-label="Battery high"><i data-lucide="battery-full" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl></article></section>
+</div>

@@ -6,6 +6,7 @@ This directory tracks the UI and UX redesign on branch `ux`. Documentation is wr
 
 ## Working documents
 
+- [Android visual direction](android-style.md): current style study based on native Material components, in `wireframes/live-material.html`.
 - [Revised live screen](live-v2.md): approved layout in `wireframes/live-v2.html`, now used by the connected prototype.
 - [Sensor page](sensor-page-v2.md): approved individual-screen layout in `wireframes/sensor-detail-v2.html`, now connected, with readings, status, history/registration entry, and immediately visible identification information.
 - [First history access](history-empty-states.md): loading, unreachable-sensor, and empty-history presentation when no local history exists, in `wireframes/history-first-download.html`.

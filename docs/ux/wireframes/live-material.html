@@ -1,0 +1,84 @@
+<div id="boat-live-material" aria-label="Android Material live screen style study">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+    #boat-live-material { --android-surface:light-dark(#faf9f6,#141414); --android-container:light-dark(#efeeeb,#232323); --android-on-surface:light-dark(#202020,#e8e8e6); --android-on-variant:light-dark(#555550,#bdbdb7); --android-outline:light-dark(#c8c7c1,#484844); --android-primary:light-dark(#575750,#d0d0c6); --android-secondary-container:light-dark(#e2e1db,#3b3b36); --android-on-secondary:light-dark(#23231f,#e7e7de); --android-primary-container:light-dark(#e2e1db,#3b3b36); --android-on-primary-container:light-dark(#23231f,#e7e7de); font-family:Roboto,system-ui,sans-serif; color:var(--android-on-surface); }
+    #boat-live-material[data-palette="petrol"] { --android-surface:light-dark(#f5faf6,#111916); --android-container:light-dark(#e7f0e9,#1e2a25); --android-on-surface:light-dark(#19211c,#e0e9e1); --android-on-variant:light-dark(#46534a,#b9c8bd); --android-outline:light-dark(#bdcec1,#3e5145); --android-secondary-container:light-dark(#cdebdc,#2c4b3d); --android-on-secondary:light-dark(#102f22,#c4eed7); --android-primary-container:light-dark(#cdebdc,#2c4b3d); --android-on-primary-container:light-dark(#102f22,#c4eed7); }
+    #boat-live-material[data-palette="amber"] { --android-surface:light-dark(#fff8f0,#1a1611); --android-container:light-dark(#f6ecdf,#2b251c); --android-on-surface:light-dark(#251e15,#eee4d5); --android-on-variant:light-dark(#5c4f3d,#cec0aa); --android-outline:light-dark(#d5c4a9,#554837); --android-secondary-container:light-dark(#ffddb0,#594329); --android-on-secondary:light-dark(#342009,#ffdfb3); --android-primary-container:light-dark(#ffddb0,#594329); --android-on-primary-container:light-dark(#342009,#ffdfb3); }
+    #boat-live-material * { box-sizing:border-box; }
+    #boat-live-material .phone { width:100%; max-width:412px; margin:auto; overflow:hidden; border:1px solid var(--android-outline); border-radius:24px; background:var(--android-surface); }
+    #boat-live-material .app-bar { min-height:80px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    #boat-live-material h2 { margin:0; font-size:28px; line-height:36px; font-weight:400; }
+    #boat-live-material .history { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:0 20px; border:0; border-radius:24px; background:var(--android-secondary-container); color:var(--android-on-secondary); font-size:14px; line-height:20px; font-weight:500; }
+    #boat-live-material .history svg { width:18px; height:18px; }
+    #boat-live-material .content { padding:4px 16px 20px; }
+    #boat-live-material .section-title { display:flex; gap:8px; align-items:center; margin:12px 4px; font-size:14px; line-height:20px; font-weight:500; color:var(--android-on-variant); }
+    #boat-live-material .count { font-size:12px; font-weight:400; }
+    #boat-live-material .sensor { padding:16px; margin-bottom:12px; border:1px solid transparent; border-radius:12px; background:var(--android-container); }
+    #boat-live-material[data-cards="outlined"] .sensor { border-color:var(--android-outline); background:var(--android-surface); }
+    #boat-live-material .identity { display:flex; align-items:flex-start; gap:12px; }
+    #boat-live-material .identity-text { flex:1; min-width:0; }
+    #boat-live-material .name-line { display:flex; align-items:center; gap:8px; min-height:24px; }
+    #boat-live-material h4 { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:16px; line-height:24px; font-weight:500; margin:0; letter-spacing:0.15px; }
+    #boat-live-material .placement { font-size:12px; line-height:16px; margin:2px 0 0; color:var(--android-on-variant); }
+    #boat-live-material .photo { width:40px; height:40px; border-radius:8px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; background:var(--android-primary-container); color:var(--android-on-primary-container); font-size:11px; line-height:12px; }
+    #boat-live-material .photo svg { width:18px; height:18px; }
+    #boat-live-material .battery { flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; margin-top:4px; color:var(--android-on-variant); }
+    #boat-live-material .battery svg { width:16px; height:16px; stroke-width:1.5; }
+    #boat-live-material dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 8px; margin:18px 0 0; }
+    #boat-live-material dt { font-size:12px; line-height:16px; color:var(--android-on-variant); margin-bottom:4px; }
+    #boat-live-material dd { margin:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:3px; font-size:24px; line-height:32px; font-weight:400; letter-spacing:0; font-variant-numeric:tabular-nums; }
+    #boat-live-material dd span { font-size:12px; line-height:16px; color:var(--android-on-variant); }
+    #boat-live-material .received { font-size:12px; line-height:16px; color:var(--android-on-variant); margin:14px 0 0; }
+    #boat-live-material .nearby { margin-top:24px; padding-top:8px; border-top:1px solid var(--android-outline); }
+    #boat-live-material .registration { flex-shrink:0; padding:2px 7px; border:1px solid var(--android-outline); border-radius:6px; color:var(--android-on-variant); font-size:11px; line-height:16px; white-space:nowrap; }
+    #boat-live-material footer { margin:4px 4px 0; font-size:11px; line-height:16px; color:var(--android-on-variant); }
+  </style>
+  <section class="phone">
+    <header class="app-bar"><h2>Live</h2><span class="history"><i data-lucide="history" aria-hidden="true"></i>History</span></header>
+    <main class="content">
+      <section aria-labelledby="material-registered-heading">
+        <h3 class="section-title" id="material-registered-heading">Registered sensors <span class="count">3</span></h3>
+        <article class="sensor">
+          <div class="identity"><div class="photo" role="img" aria-label="Optional photo placeholder"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div><div class="identity-text"><div class="name-line"><h4>Forward cabin</h4></div><p class="placement">Above the wardrobe</p></div><span class="battery" role="img" aria-label="Sensor battery: high"><i data-lucide="battery-full" aria-hidden="true"></i></span></div>
+          <dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+        </article>
+        <article class="sensor">
+          <div class="identity"><div class="identity-text"><div class="name-line"><h4>Outdoors</h4></div><p class="placement">Under the cockpit canopy</p></div><span class="battery" role="img" aria-label="Sensor battery: medium"><i data-lucide="battery-medium" aria-hidden="true"></i></span></div>
+          <dl><div><dt>Temperature</dt><dd>23.1 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>71 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+          <p class="received">Received 2 hours ago</p>
+        </article>
+        <article class="sensor">
+          <div class="identity"><div class="identity-text"><div class="name-line"><h4>Battery temperature</h4></div></div></div>
+          <dl><div><dt>Temperature</dt><dd>31.2 <span>°C</span></dd></div></dl>
+        </article>
+      </section>
+      <section class="nearby" aria-labelledby="material-nearby-heading">
+        <h3 class="section-title" id="material-nearby-heading">Other nearby sensors <span class="count">1</span></h3>
+        <article class="sensor">
+          <div class="identity"><div class="identity-text"><div class="name-line"><h4>SENE-7C2A</h4><span class="registration">Not registered</span></div></div><span class="battery" role="img" aria-label="Sensor battery: medium"><i data-lucide="battery-medium" aria-hidden="true"></i></span></div>
+          <dl><div><dt>Temperature</dt><dd>25.8 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>66 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+        </article>
+      </section>
+      <footer>Style study · illustrative readings</footer>
+    </main>
+  </section>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-live-material');
+      const state = {cards:'filled',appearance:'dark',palette:'petrol'};
+      function render() {
+        root.dataset.cards = state.cards;
+        root.dataset.palette = state.palette;
+        if(state.appearance==='system') root.style.removeProperty('color-scheme');
+        else root.style.colorScheme = state.appearance;
+      }
+      render();
+      if(globalThis.Tweak) {
+        const tweak = new Tweak({container:root,onChange:render});
+        tweak.addSelect(state,'palette',{label:'Color palette',options:[{label:'Graphite',value:'graphite'},{label:'Petrol',value:'petrol'},{label:'Amber',value:'amber'}]});
+        tweak.addSelect(state,'cards',{label:'Material card style',options:[{label:'Filled',value:'filled'},{label:'Outlined',value:'outlined'}]});
+        tweak.addSelect(state,'appearance',{label:'Appearance',options:[{label:'Follow system',value:'system'},{label:'Light',value:'light'},{label:'Dark',value:'dark'}]});
+      }
+    })();
+  </script>
+</div>
