@@ -1,6 +1,6 @@
 # Native implementation plan
 
-Status: independently reviewed and amended, 2026-09-07. The owner authorized autonomous implementation, milestone commits, subagents, testing on the development phone, and a final independent visual review.
+Status: implementation and validation completed, 2026-09-07. The owner authorized autonomous implementation, milestone commits, subagents, testing on the development phone, and a final independent visual review.
 
 ## Scope and source of truth
 
@@ -53,14 +53,14 @@ Status: independently reviewed and amended, 2026-09-07. The owner authorized aut
 
 ### M4 — Integration, native validation and visual review
 
-- [ ] Apply consistent Petrol Material styling to sensor pages, dialogs, states, settings, overview and landscape detail. Preserve a usable light counterpart and make the theme preference explicit if needed.
-- [ ] Complete routing and prerequisite handling; remove obsolete reachable placeholder/editor paths once replacements are verified.
-- [ ] Run JVM tests, lint, debug assembly and connected Android tests on the development phone. Inspect failures and rerun only affected checks before the final suite.
-- [ ] Exercise real scan/registration/latest-reading restoration and, when a compatible sensor is available, a real history download. Use clearly isolated synthetic fixtures for chart states unavailable on hardware.
-- [ ] Capture native screenshots covering live, registered/unregistered sensor pages, edit/removal dialogs, history overview/detail and error states; include large-font/narrow-layout checks.
-- [ ] Obtain independent code review and a separate visual review of native screenshots against approved references; resolve material findings and repeat relevant checks.
-- [ ] Update documentation, acceptance checklist and known limits with actual results; commit the completed milestone.
-- [ ] Leave the final app installed on the development phone, including after test-runner cleanup. Do not claim real-device transfer validation if no compatible sensor was available.
+- [x] Apply consistent Petrol Material styling to sensor pages, dialogs, states, settings, overview and landscape detail. Preserve a usable light counterpart and make the theme preference explicit if needed.
+- [x] Complete routing and prerequisite handling; remove obsolete reachable placeholder/editor paths once replacements are verified.
+- [x] Run JVM tests, lint, debug assembly and connected Android tests on the development phone. Inspect failures and rerun only affected checks before the final suite.
+- [x] Exercise real scan/registration/latest-reading restoration and, when a compatible sensor is available, a real history download. Use clearly isolated synthetic fixtures for chart states unavailable on hardware.
+- [x] Capture native screenshots covering live, registered/unregistered sensor pages, edit/removal dialogs, history overview/detail and error states; include large-font/narrow-layout checks.
+- [x] Obtain independent code review and a separate visual review of native screenshots against approved references; resolve material findings and repeat relevant checks.
+- [x] Update documentation, acceptance checklist and known limits with actual results; commit the completed milestone.
+- [x] Leave the final app installed on the development phone, including after test-runner cleanup. Do not claim real-device transfer validation if no compatible sensor was available.
 
 ## Working rules
 
@@ -85,8 +85,15 @@ Implementation interface ownership will be recorded when work is delegated.
 
 M0/M1: independent baseline review found historical database-version collisions. Explicit v3 migrations now cover original/reworked v1 and both prior v2 shapes. Shared registration identity and mutation coordination support safe later history imports. Native live/sensor-page implementation passed JVM tests and 21/21 connected tests on the development Pixel 4a (5G), Android 14. The first commit groups the live baseline, migration correction, and sensor-page integration; history UI/session work continues separately.
 
-M2/M3 implementation: observable archives and tri-state capability, one automatic download queue, identity-guarded imports, cursor validation, import retention, overview navigation, centered chart gestures and exact comparison readouts are implemented. Repository, session, ViewModel and pure chart cases are included in the JVM suite. Native routing, gestures, failure states and appearance passed the complete 57-test device suite. All 113 JVM tests, lint and debug assembly passed. Screenshot review is being finalized separately.
+M2/M3 implementation: observable archives and tri-state capability, one automatic download queue, identity-guarded imports, cursor validation, import retention, overview navigation, centered chart gestures and exact comparison readouts are implemented. Repository, session, ViewModel and pure chart cases are included in the JVM suite. Native routing, gestures, failure states and appearance passed the complete 57-test device suite. All 113 JVM tests, lint and debug assembly passed. Independent screenshot review passed after targeted corrections.
 
 Physical sensor validation, 2026-09-07: SENE-A was discovered with plausible live temperature/humidity/pressure/battery readings and registered from its sensor page. Opening history automatically completed a real 130,306-position transfer and displayed 1,010 dated samples plus four undated samples. After force-stop/restart the registration and archive remained available. Opening the overview automatically performed an incremental update, increasing dated samples to 1,011 without losing the archive. The saved timeline includes an old 2023 timestamp; it is preserved as recorded rather than silently discarded. A coverage-warning regression seen on this increment was corrected: known truncation remains attached to the archive even when a subsequent transfer has no new truncation flag.
 
-Independent integration review found and corrected history overview orientation ownership and failure handling for persistable photo permissions. Independent visual review of the real history page requested a smaller readout overlay; normal-font height is now capped at 22%, with coverage/synchronization details available through Info. The orientation/session regression test now passes, including explicit Activity recreation and overview/detail transitions. Final regenerated screenshots are being reviewed separately.
+Independent integration review found and corrected history overview orientation ownership and failure handling for persistable photo permissions. Independent visual review of the real history page requested a smaller readout overlay; normal-font height is now capped at 22%, with coverage/synchronization details available through Info. The orientation/session regression test now passes, including explicit Activity recreation and overview/detail transitions. Final regenerated screenshots are recorded in `native-review.md`.
+
+
+M4 completion: the independent visual review covered twelve synthetic native scenarios and a real sensor archive. Fixes include readable one-column measurements at high font scale, empty states without fictitious epoch axes, measured chart insets that keep controls clear of samples, compact time controls, and a two-line large-font cursor readout. All 113 JVM tests, the complete 57-case native suite, lint and debug assembly passed. The final empty-overview test raised the native count to 58; all 17 affected HistoryScreen cases and the final large-font capture subsequently passed. See `../testing.md` for exact scope and remaining hardware-validation limits.
+
+The final debug build remains installed and open on Live on the development phone. After instrumentation's reinstall/reset behavior, SENE-A was registered again and its production full history transfer completed with 1,013 dated samples. Final process restart retained the registration and current readings. Approved screenshots and findings are stored in `native-review.md` and `review/native/`.
+
+Milestone commits: `85e6d6b` (live, migration and sensor page), `2b44238` (automatic history, native charts, integration and tests), followed by the final validation/documentation commit.

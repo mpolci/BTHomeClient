@@ -1,11 +1,12 @@
 # UX design
 
-Status: approved core screens connected in the current interactive prototype; remaining design details are tracked separately.
+Status: the approved core flows are implemented in the native Android app. The HTML prototype remains a schematic behavioral reference; native validation and review are recorded in the implementation plan.
 
 This directory tracks the UI and UX redesign on branch `ux`. Documentation is written in English; discovery conversations may be in Italian.
 
 ## Working documents
 
+- [Native implementation plan](implementation-plan.md): reviewed milestones, acceptance criteria, implementation evidence and remaining validation.
 - [Android visual direction](android-style.md): current style study based on native Material components, in `wireframes/live-material.html`.
 - [Revised live screen](live-v2.md): approved layout in `wireframes/live-v2.html`, now used by the connected prototype.
 - [Sensor page](sensor-page-v2.md): approved individual-screen layout in `wireframes/sensor-detail-v2.html`, now connected, with readings, status, history/registration entry, and immediately visible identification information.

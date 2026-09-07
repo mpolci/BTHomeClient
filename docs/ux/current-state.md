@@ -2,6 +2,8 @@
 
 Initial source review: 2026-09-05. These observations describe the implementation and are not redesign decisions. No visual or on-device review has been performed during this discovery step.
 
+This is the pre-redesign baseline. For the implemented native flows and device validation, see [implementation-plan.md](implementation-plan.md) and [the current application architecture](../architecture.md).
+
 ## Navigation and behavior
 
 - The Android app uses Jetpack Compose. Routes cover the main dashboard, registration, sensor detail, history, and global settings.

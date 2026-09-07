@@ -4,7 +4,7 @@ Status: the complete dark Petrol live-screen treatment was approved on 2026-09-0
 
 ## Reference and implementation direction
 
-Use the current Material 3 / Material 3 Expressive design system and Compose components as the platform reference. Follow system light/dark appearance and use Android dynamic color when implemented. Dynamic color is supported from Android 12, which matches this project's minimum supported version. Reference: [Material Design 3 in Compose](https://developer.android.com/develop/ui/compose/designsystems/material3).
+Use the Material 3 design system and Compose components as the platform reference. The native implementation uses the approved fixed Petrol palette, defaults to Dark, and offers Light and System appearance choices in Settings. Wallpaper-derived dynamic color is not enabled, so the approved palette remains predictable. Reference: [Material Design 3 in Compose](https://developer.android.com/develop/ui/compose/designsystems/material3).
 
 Material 3 Expressive extends M3 rather than requiring an unrelated visual language. Its current design resources are listed on the [official Material site](https://m3.material.io/). For this app, prioritize readable readings and familiar controls over decorative effects.
 
@@ -24,7 +24,7 @@ Prefer Material component defaults and theme roles in Android. Use native Materi
 
 The examples preserve the approved information and navigation structure. Neither alternative removes labels or moves management into a new navigation section.
 
-The initial blue-based palette was rejected by the owner. The current study offers Graphite, Petrol, and Amber palettes, with dark appearance selected by default. These are illustrative palettes, not the phone's actual wallpaper palette. Android should resolve dynamic colors through its theme APIs. Reference: [Android color guidance](https://developer.android.com/design/ui/mobile/guides/styles/color).
+The initial blue-based palette was rejected by the owner. The study offers Graphite, Petrol, and Amber palettes, with dark appearance selected by default. Petrol was approved and translated into native Material color roles. Reference: [Android color guidance](https://developer.android.com/design/ui/mobile/guides/styles/color).
 
 ## Preview and scope
 
@@ -32,7 +32,7 @@ The initial blue-based palette was rejected by the owner. The current study offe
 
 The current app already uses Compose Material 3, with manually defined light/dark colors. The checked-in dependency catalog notes an SDK constraint on newer BOM versions. Selecting and validating implementation dependencies is a later step; no dependency or SDK upgrade is made for this style study.
 
-Still to validate on the native app: font scaling, touch/ripple behavior, system bars/insets, screen rotation, real dynamic palettes, and contrast on a physical phone.
+Native font scaling, controls, system insets, rotation and contrast are covered by the implementation review. See [implementation plan](implementation-plan.md) for results; the browser study itself is not native validation.
 
 ## Preview checks
 
@@ -40,4 +40,4 @@ Filled cards were visually inspected in light and dark appearance; the outlined 
 
 ## Dark palette review
 
-The owner prefers a dark appearance and rejected the pale blue tint. Graphite, Petrol, and Amber were compared using the same content and structure. Petrol was selected; the other palettes remain available only for reference. The owner selected Petrol in dark appearance (D35). It is now the initial palette in the full live-screen study. Final system-theme behavior remains to be defined. The changes affect only style studies, not the connected prototype or Android code.
+The owner prefers a dark appearance and rejected the pale blue tint. Graphite, Petrol, and Amber were compared using the same content and structure. Petrol was selected; the other palettes remain available only for reference. The owner selected Petrol in dark appearance (D35). It is the initial palette in the full live-screen study and the native app; the connected prototype remains a wireframe.

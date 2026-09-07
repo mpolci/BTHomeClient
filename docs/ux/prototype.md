@@ -1,6 +1,6 @@
 # Connected UX prototype
 
-Status: current integrated version, 2026-09-07, built after checkpoint commit `bcac193`. No Android application code is changed.
+Status: current integrated wireframe, 2026-09-07, built after checkpoint commit `bcac193`. This document records the browser prototype work. Subsequent native Android implementation and validation are tracked in [implementation-plan.md](implementation-plan.md); the prototype remains schematic.
 
 ## Entry point and sources
 
