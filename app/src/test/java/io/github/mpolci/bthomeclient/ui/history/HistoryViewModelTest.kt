@@ -136,7 +136,7 @@ class HistoryViewModelTest {
         assertEquals(selection, model.selection())
     }
 
-    @Test fun firstCoverageFitsAllAndLaterDownloadsPreserveExploration() = runTest(dispatcher) {
+    @Test fun shortCoverageFitsAvailableDataAndLaterDownloadsPreserveExploration() = runTest(dispatcher) {
         val manager = Manager(listOf(sensor(first)))
         val store = Store().apply { samples(first).value = listOf(sample(first, 2, 30_000L), sample(first, 1, 10_000L)) }
         val session = HistorySessionCoordinator(store, backgroundScope)
@@ -157,6 +157,35 @@ class HistoryViewModelTest {
         assertEquals(1001.0, model.state.value.selected!!.points.first().value, 0.0)
         model.showAllHistory()
         assertEquals(HistoryViewport(50_000, 80_000), model.state.value.viewport)
+    }
+
+    @Test fun overviewAndDirectDetailStartWithLatestWeekAndFollowDownloadsUntilExploration() = runTest(dispatcher) {
+        val day = 86_400_000L
+        val manager = Manager(listOf(sensor(first)))
+        val store = Store().apply { samples(first).value = listOf(sample(first, 1, 0), sample(first, 2, 90 * day)) }
+        val session = HistorySessionCoordinator(store, backgroundScope)
+        val overview = HistoryViewModel(null, manager, store, session, computationDispatcher = dispatcher)
+        val detail = HistoryViewModel(first, manager, store, session, computationDispatcher = dispatcher)
+        runCurrent()
+        for (model in listOf(overview, detail)) {
+            assertEquals(83 * day, model.state.value.viewport.startMillis)
+            assertEquals(90 * day, model.state.value.viewport.endMillis)
+        }
+        store.samples(first).value += sample(first, 3, 100 * day)
+        runCurrent()
+        assertEquals(93 * day, overview.state.value.viewport.startMillis)
+        assertEquals(100 * day, detail.state.value.viewport.endMillis)
+        overview.setViewport(HistoryViewport(40 * day, 2 * day))
+        detail.showAllHistory()
+        runCurrent()
+        val all = detail.state.value.viewport
+        store.samples(first).value += sample(first, 4, 110 * day)
+        runCurrent()
+        assertEquals(HistoryViewport(40 * day, 2 * day), overview.state.value.viewport)
+        assertEquals(all, detail.state.value.viewport)
+        val openedFromOverview = HistoryViewModel(first, manager, store, session, overview.selection(), dispatcher)
+        runCurrent()
+        assertEquals(overview.state.value.viewport, openedFromOverview.state.value.viewport)
     }
 
     @Test fun zoomPreservesFitMidpointWhilePanningSnapsToRecordedSample() = runTest(dispatcher) {

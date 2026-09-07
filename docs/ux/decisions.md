@@ -42,4 +42,6 @@ Record agreed decisions here. Proposed solutions and unanswered questions belong
 | D35 | 2026-09-07 | Use the dark Petrol palette as the selected visual direction. | Explicit owner choice after comparing Graphite, Petrol, and Amber. Material component structure and approved UX remain unchanged. |
 | D36 | 2026-09-07 | Approve the full Material-style live screen with the dark Petrol palette and filled tonal sensor cards. | Explicit owner confirmation after reviewing the full screen. This establishes the visual reference for the remaining screens. |
 
+| D37 | 2026-09-07 | Open History on the last seven days ending at the latest available recorded sample. Shorter archives fit their available coverage. Follow newly downloaded samples until the user chooses a time window; preserve an inherited overview window in detail and keep All history available. | Owner requested a one-week initial zoom and explicitly chose the latest recorded sample as the endpoint. Supersedes the native implementation's initial full-archive fit. |
+
 The current live-screen and navigation revision is tracked in `live-v2.md`. Earlier decisions remain recorded with their superseding decisions above. History exploration, device controls, and other unresolved details continue in their respective documents.

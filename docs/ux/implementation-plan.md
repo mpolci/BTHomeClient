@@ -43,7 +43,7 @@ Status: implementation and validation completed, 2026-09-07. The owner authorize
 ### M3 — Historical overview and exploration
 
 - [x] Add general History navigation and a portrait overview with one chart per compatible registered sensor, one shared measurement and time window.
-- [x] First overview entry fits all available dated coverage. Replace preset-only periods with immediate time navigation, pan/range adjustment and a full-coverage reset; preserve overview period, measurement and scroll position on Back and while updates finish.
+- [x] First History entry shows the latest week ending at the latest recorded sample (D37); shorter archives fit their available coverage. Replace preset-only periods with immediate time navigation, pan/range adjustment and a full-coverage reset; preserve overview period, measurement and scroll position on Back and while updates finish.
 - [x] Implement a landscape individual chart; restore the prior orientation when leaving and preserve period/cursor on rotation and Back.
 - [x] Keep a fixed central cursor and sample readout. Drag to move the timeline; pinch to zoom around its center; permit endpoint samples to reach the cursor.
 - [x] Compare compatible saved sensors with actual sample timestamps and units. Expose exact recorded values rather than presenting interpolation as observations.
@@ -97,3 +97,7 @@ M4 completion: the independent visual review covered twelve synthetic native sce
 The final debug build remains installed and open on Live on the development phone. After instrumentation's reinstall/reset behavior, SENE-A was registered again and its production full history transfer completed with 1,013 dated samples. Final process restart retained the registration and current readings. Approved screenshots and findings are stored in `native-review.md` and `review/native/`.
 
 Milestone commits: `85e6d6b` (live, migration and sensor page), `2b44238` (automatic history, native charts, integration and tests), followed by the final validation/documentation commit.
+
+D37 refinement: the initial seven-day window follows new download results until the owner starts time exploration; an inherited overview window and explicit All history selection remain stable. ViewModel regression coverage includes multi-month archives, later downloads, shorter archives and overview-to-detail selection.
+
+D37 validation: all 12 HistoryViewModel tests and debug assembly passed. An in-place APK update retained the development phone's saved data; opening the real SENE-A overview displayed 31 August–7 September 2026, ending at the latest available sample.

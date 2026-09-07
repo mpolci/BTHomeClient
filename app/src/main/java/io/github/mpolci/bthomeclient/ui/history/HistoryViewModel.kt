@@ -32,6 +32,7 @@ class HistoryViewModel(
 ) : ViewModel() {
     private val measurement = MutableStateFlow(initialSelection?.measurement ?: HistoryMeasurement.Temperature)
     private var viewport = initialSelection?.viewport
+    private var viewportSelected = viewport != null
     private var comparisonAddress: SensorAddress? = null
     private var viewportRevision = 0L
     private val active = MutableStateFlow(false)
@@ -104,6 +105,7 @@ class HistoryViewModel(
     fun setMeasurement(value: HistoryMeasurement) { measurement.value = value }
 
     fun setViewport(value: HistoryViewport) {
+        viewportSelected = true
         val revision = ++viewportRevision
         val snapshot = state.value
         viewModelScope.launch {
@@ -131,6 +133,7 @@ class HistoryViewModel(
     }
 
     fun showAllHistory() {
+        viewportSelected = true
         viewportRevision++
         viewport = state.value.coverage?.let { HistoryViewport.fit(it) }
         rebuild()
@@ -143,7 +146,11 @@ class HistoryViewModel(
         if (!archivesLoading && visible.none { it.data.address == comparisonAddress && it.data.points.isNotEmpty() }) comparisonAddress = null
         val ranges = visible.filter { address == null || it.data.address == address || it.data.address == comparisonAddress }.mapNotNull { it.coverage }
         val coverage = ranges.takeIf { it.isNotEmpty() }?.let { HistoryTimeRange(it.minOf { range -> range.startMillis }, it.maxOf { range -> range.endMillis }) }
-        if (viewport == null && coverage != null) viewport = HistoryViewport.fit(coverage)
+        if (!viewportSelected && coverage != null) {
+            val weekMillis = 7 * 24 * 60 * 60 * 1_000L
+            viewport = if (coverage.spanMillis <= weekMillis) HistoryViewport.fit(coverage)
+                else HistoryViewport(coverage.endMillis - weekMillis / 2, weekMillis)
+        }
         mutableState.update { current ->
             current.copy(
                 sensors = visible.map { it.data },
