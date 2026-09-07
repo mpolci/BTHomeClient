@@ -47,10 +47,11 @@ fun MainScreen(
     onRegister: (MergedSensor) -> Unit,
     onDetails: (MergedSensor) -> Unit,
     nowEpochMillis: Long = currentEpochMillis(),
+    onHistory: () -> Unit = {},
 ) {
     val registered = state.sensors.filter { it.isRegistered }
     val detected = state.sensors.filterNot { it.isRegistered }
-    Scaffold(topBar = { TopAppBar(title = { Text("Live", Modifier.semantics { heading() }) }, actions = { TextButton(onClick = onSettings, Modifier.semantics { contentDescription = "Settings" }) { Text("Settings") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Live", Modifier.semantics { heading() }) }, actions = { FilledTonalButton(onClick = onHistory) { Text("History") }; TextButton(onClick = onSettings, Modifier.semantics { contentDescription = "Settings" }) { Text("Settings") } }) }) { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),

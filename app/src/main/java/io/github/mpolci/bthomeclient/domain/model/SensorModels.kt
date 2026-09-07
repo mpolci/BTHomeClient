@@ -75,8 +75,11 @@ data class MergedSensor(
 
 data class AppSettings(
     val retentionDurationMillis: Long? = null,
+    val themeMode: ThemeMode = ThemeMode.Dark,
 ) {
     init {
         require(retentionDurationMillis == null || retentionDurationMillis > 0)
     }
 }
+
+enum class ThemeMode { System, Light, Dark }

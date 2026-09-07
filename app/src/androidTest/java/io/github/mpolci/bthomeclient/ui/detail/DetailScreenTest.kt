@@ -1,12 +1,16 @@
 package io.github.mpolci.bthomeclient.ui.detail
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.mpolci.bthomeclient.bthome.*
 import io.github.mpolci.bthomeclient.domain.model.*
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -14,6 +18,25 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DetailScreenTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun largeFontMeasurementsRemainSeparatedAndReadable() {
+        val initial = contentState()
+        val sensor = initial.sensor!!
+        val reading = LatestReading(BTHomeMeasurements(86, 24.8, 52.0, 1013.0, 740), 100_000)
+        val state = initial.copy(sensor = sensor.copy(observation = null, registeredSensor = sensor.registeredSensor!!.copy(latestReading = reading)))
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.6f)) {
+                DetailScreen(state, {}, {}, {}, {}, {}, {}, {}, {}, nowEpochMillis = 121_000L)
+            }
+        }
+        val temperature = compose.onNodeWithText("%.1f °C".format(24.8)).fetchSemanticsNode().boundsInRoot
+        val humidity = compose.onNodeWithText("%.1f %%".format(52.0)).fetchSemanticsNode().boundsInRoot
+        assertTrue("Large readings must not collide", temperature.bottom < humidity.top)
+        listOf("%.1f °C".format(24.8), "%.1f %%".format(52.0), "1013 hPa", "740 ppm").forEach {
+            compose.onNodeWithText(it).performScrollTo().assertIsDisplayed()
+        }
+    }
 
     @Test fun unregisteredSensorShowsIdentityReadingsAndRegistrationWithoutEditing() {
         var registrations = 0

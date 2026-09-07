@@ -25,7 +25,7 @@ class SettingsRepositoryTest {
             val file = context.cacheDir.resolve("settings-${UUID.randomUUID()}.preferences_pb")
             val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
             val repository = SettingsRepository(dataStore)
-            val expected = AppSettings(retentionDurationMillis = 604_800_000)
+            val expected = AppSettings(retentionDurationMillis = 604_800_000, themeMode = io.github.mpolci.bthomeclient.domain.model.ThemeMode.System)
 
             try {
                 val legacyKey = longPreferencesKey("minimum_persistence_interval_millis")

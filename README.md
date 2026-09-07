@@ -7,10 +7,11 @@ Local Android monitoring for unencrypted BTHome v2 environmental BLE advertiseme
 - Petrol Material dashboard with registered sensors first and nearby unregistered sensors after them.
 - All available environmental readings shown directly, with optional image/placement and a compact battery indicator.
 - Latest valid readings and their reception timestamps retained for registered sensors across restarts.
-- Registration with optional Android Photo Picker image.
-- Detail editing/removal with live protocol diagnostics and a history entry point.
-- Global downloaded-history retention setting.
-- Accessible history placeholder while chart visualization is deferred.
+- Same-page registration, optional placement/photo, per-field editing, and removal with confirmation.
+- Sensor identity, exact reception age/battery, protocol diagnostics and discovered history capability.
+- Automatic sensor-stored history updates, with a shared queue and readable cached archives during failures.
+- Portrait historical overview with a shared measurement/time window, plus landscape exploration using a fixed cursor, pan/pinch and sensor comparison.
+- Global downloaded-history retention and Dark Petrol, Light or System appearance settings.
 
 ## Setup
 
@@ -25,7 +26,7 @@ Android Studio can open the project directly; the app has `minSdk 31` and compil
 
 ## Privacy and scanning
 
-Only `BLUETOOTH_SCAN` (`neverForLocation`) and `BLUETOOTH_CONNECT` are declared. No location, storage, or media permission is requested. Scanning is foreground-only and runs only while the main dashboard route is started. Android backup is disabled; registered data remains local.
+Only `BLUETOOTH_SCAN` (`neverForLocation`) and `BLUETOOTH_CONNECT` are declared. No location, storage, or media permission is requested. Scanning is foreground-only on Live and sensor pages; history pauses scanning and owns its GATT transfer session. Android backup is disabled; registered data remains local.
 
 Nearby Devices is requested only after the user chooses Allow. Bluetooth enable and app-settings actions are also user initiated.
 
@@ -39,11 +40,11 @@ The app supports BTHome service UUID `0xFCD2`, v2, unencrypted packets. Temperat
 ./gradlew testDebugUnitTest
 ./gradlew lintDebug
 ./gradlew assembleDebug
-./gradlew connectedDebugAndroidTest
+./gradlew connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true
 ```
 
-Physical validation completed on 2026-09-01 with a Google Pixel 4a (5G), Android 14/API 34: 11/11 connected tests passed and an unencrypted BTHome v2 SENE-A sensor was detected with plausible temperature, humidity, pressure, and battery values. Registration and persistence across force-stop/restart were verified; detail and settings screens were exercised. Editor/settings saving is covered by automated tests.
+Physical validation uses a Google Pixel 4a (5G), Android 14/API 34. The native redesign was exercised with a real SENE-A, including live readings, registration, full and incremental history download, and persisted data after process restart. Automated suites also cover database migrations, concurrency, chart math, native navigation, editing, failure states and accessibility. See [testing](docs/testing.md) and [the implementation record](docs/ux/implementation-plan.md) for exact results.
 
 ## Limitations
 
-BTHome v1, encrypted packets, GATT, background scanning, charts, cloud/accounts, all BTHome objects, and computed mold/dew/heat metrics are out of scope.
+BTHome v1, encrypted advertisements, background scanning, cloud/accounts, additional BTHome objects and computed mold/dew/heat metrics are out of scope. GATT history currently supports the existing SENE-A protocol only. Device reset/renaming and security enrollment are candidate features, not implemented controls. History comes from sensor storage; the app does not build history from live advertisements. Undated samples are preserved but cannot be plotted on the timeline.

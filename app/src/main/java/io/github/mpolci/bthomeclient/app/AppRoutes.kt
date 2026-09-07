@@ -7,6 +7,7 @@ object AppRoutes {
     const val Settings = "settings"
     const val Registration = "registration/{address}"
     const val Detail = "detail/{address}"
+    const val HistoryOverview = "history"
     const val History = "history/{address}"
 
     fun registration(address: SensorAddress) = "registration/${token(address)}"

@@ -249,7 +249,7 @@ private fun SensorMeasurements(values: BTHomeMeasurements) {
     if (measurements.isEmpty()) return
     val fontScale = LocalDensity.current.fontScale
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val columns = (maxWidth.value / (94 * fontScale)).toInt().coerceIn(1, 3)
+        val columns = if (fontScale > 1.3f) 1 else (maxWidth.value / (106 * fontScale)).toInt().coerceIn(1, 3)
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             measurements.chunked(columns).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

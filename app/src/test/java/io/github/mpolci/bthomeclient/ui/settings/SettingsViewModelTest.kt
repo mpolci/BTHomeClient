@@ -34,6 +34,18 @@ class SettingsViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
+    fun `theme and retention changes preserve each other`() = runTest(dispatcher) {
+        val manager = Manager(AppSettings())
+        val viewModel = SettingsViewModel(manager)
+        runCurrent()
+        viewModel.edit(themeMode = io.github.mpolci.bthomeclient.domain.model.ThemeMode.System)
+        viewModel.edit(retention = 604_800_000)
+        assertEquals(io.github.mpolci.bthomeclient.domain.model.ThemeMode.System, viewModel.state.value.pending.themeMode)
+        viewModel.edit(themeMode = io.github.mpolci.bthomeclient.domain.model.ThemeMode.Light)
+        assertEquals(604_800_000L, viewModel.state.value.pending.retentionDurationMillis)
+    }
+
+    @Test
     fun `invalid selection and save failure keep the pending value for retry`() = runTest(dispatcher) {
         val manager = Manager(AppSettings())
         val viewModel = SettingsViewModel(manager)

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.mpolci.bthomeclient.data.repository.SensorManager
 import io.github.mpolci.bthomeclient.domain.model.AppSettings
+import io.github.mpolci.bthomeclient.domain.model.ThemeMode
 import io.github.mpolci.bthomeclient.ui.editor.EditorEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,13 +52,13 @@ class SettingsViewModel(
         }
     }
 
-    fun edit(retention: Long? = state.value.pending.retentionDurationMillis) {
+    fun edit(retention: Long? = state.value.pending.retentionDurationMillis, themeMode: ThemeMode = state.value.pending.themeMode) {
         if (retention !in retentions) {
             mutableState.update { it.copy(error = "Invalid settings selection.") }
             return
         }
         mutableState.update {
-            it.copy(pending = AppSettings(retention), edited = true, error = null)
+            it.copy(pending = AppSettings(retention, themeMode), edited = true, error = null)
         }
     }
 

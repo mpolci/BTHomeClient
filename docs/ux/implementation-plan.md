@@ -32,24 +32,24 @@ Status: independently reviewed and amended, 2026-09-07. The owner authorized aut
 
 ### M2 — Observable history and automatic updates
 
-- [ ] Expose downloaded samples, coverage, synchronization information and per-sensor progress/errors through repository/ViewModels.
-- [ ] Use one history-session coordinator for the overview/detail route family. Automatically queue known-supported and unknown saved sensors on initial overview entry, or one sensor on direct entry. Reuse pending/active transfers across overview/detail transitions and rotation; cancel when leaving history entirely or genuinely backgrounding. Back must not restart the batch.
-- [ ] Keep cached history readable during updates and failures. Distinguish connecting, transfer progress, empty sensor history, no local history, unreachable/interrupted transfer, and unknown/unsupported capability.
-- [ ] Provide contextual retry and user-initiated Bluetooth/permission/settings actions without blocking saved data.
-- [ ] Cancel/clean up connections on leaving history and preserve completed imports. Serialize deletion with import or validate a registration-generation identity inside the commit transaction, including deletion followed immediately by re-registration at the same address. Never attach an old transfer or cursor to the new registration.
-- [ ] Derive successful empty/unchanged presentation from the persisted archive, not just imported count; preserve an existing archive on incremental EMPTY and explain an undated-only archive.
-- [ ] Add coordinator/repository/ViewModel tests covering concurrency, cancellation, failure and cached-data fallback; commit M2.
+- [x] Expose downloaded samples, coverage, synchronization information and per-sensor progress/errors through repository/ViewModels.
+- [x] Use one history-session coordinator for the overview/detail route family. Automatically queue known-supported and unknown saved sensors on initial overview entry, or one sensor on direct entry. Reuse pending/active transfers across overview/detail transitions and rotation; cancel when leaving history entirely or genuinely backgrounding. Back must not restart the batch.
+- [x] Keep cached history readable during updates and failures. Distinguish connecting, transfer progress, empty sensor history, no local history, unreachable/interrupted transfer, and unknown/unsupported capability.
+- [x] Provide contextual retry and user-initiated Bluetooth/permission/settings actions without blocking saved data.
+- [x] Cancel/clean up connections on leaving history and preserve completed imports. Serialize deletion with import or validate a registration-generation identity inside the commit transaction, including deletion followed immediately by re-registration at the same address. Never attach an old transfer or cursor to the new registration.
+- [x] Derive successful empty/unchanged presentation from the persisted archive, not just imported count; preserve an existing archive on incremental EMPTY and explain an undated-only archive.
+- [x] Add coordinator/repository/ViewModel tests covering concurrency, cancellation, failure and cached-data fallback; commit M2.
 
 ### M3 — Historical overview and exploration
 
-- [ ] Add general History navigation and a portrait overview with one chart per compatible registered sensor, one shared measurement and time window.
-- [ ] First overview entry fits all available dated coverage. Replace preset-only periods with immediate time navigation, pan/range adjustment and a full-coverage reset; preserve overview period, measurement and scroll position on Back and while updates finish.
-- [ ] Implement a landscape individual chart; restore the prior orientation when leaving and preserve period/cursor on rotation and Back.
-- [ ] Keep a fixed central cursor and sample readout. Drag to move the timeline; pinch to zoom around its center; permit endpoint samples to reach the cursor.
-- [ ] Compare compatible saved sensors with actual sample timestamps and units. Expose exact recorded values rather than presenting interpolation as observations.
-- [ ] Plot dated samples chronologically while retaining acquisition identity, duplicate timestamps, and time-regression/known-gap boundaries. Display local timezone explicitly; comparison readouts show each actual sample timestamp. Explain undated samples and coverage limitations; preserve extrema when reducing long series for display.
-- [ ] Ensure charts remain bounded/readable for empty, singleton, equal-value, irregular, and multi-month data. Provide accessible labels and non-gesture exploration alternatives.
-- [ ] Add pure chart/viewport tests and native overview/detail interaction tests; commit M3.
+- [x] Add general History navigation and a portrait overview with one chart per compatible registered sensor, one shared measurement and time window.
+- [x] First overview entry fits all available dated coverage. Replace preset-only periods with immediate time navigation, pan/range adjustment and a full-coverage reset; preserve overview period, measurement and scroll position on Back and while updates finish.
+- [x] Implement a landscape individual chart; restore the prior orientation when leaving and preserve period/cursor on rotation and Back.
+- [x] Keep a fixed central cursor and sample readout. Drag to move the timeline; pinch to zoom around its center; permit endpoint samples to reach the cursor.
+- [x] Compare compatible saved sensors with actual sample timestamps and units. Expose exact recorded values rather than presenting interpolation as observations.
+- [x] Plot dated samples chronologically while retaining acquisition identity, duplicate timestamps, and time-regression/known-gap boundaries. Display local timezone explicitly; comparison readouts show each actual sample timestamp. Explain undated samples and coverage limitations; preserve extrema when reducing long series for display.
+- [x] Ensure charts remain bounded/readable for empty, singleton, equal-value, irregular, and multi-month data. Provide accessible labels and non-gesture exploration alternatives.
+- [x] Add pure chart/viewport tests and native overview/detail interaction tests; commit M3.
 
 ### M4 — Integration, native validation and visual review
 
@@ -84,3 +84,9 @@ Implementation interface ownership will be recorded when work is delegated.
 ## Implementation and validation log
 
 M0/M1: independent baseline review found historical database-version collisions. Explicit v3 migrations now cover original/reworked v1 and both prior v2 shapes. Shared registration identity and mutation coordination support safe later history imports. Native live/sensor-page implementation passed JVM tests and 21/21 connected tests on the development Pixel 4a (5G), Android 14. The first commit groups the live baseline, migration correction, and sensor-page integration; history UI/session work continues separately.
+
+M2/M3 implementation: observable archives and tri-state capability, one automatic download queue, identity-guarded imports, cursor validation, import retention, overview navigation, centered chart gestures and exact comparison readouts are implemented. Repository, session, ViewModel and pure chart cases are included in the JVM suite. Native routing, gestures, failure states and appearance passed the complete 57-test device suite. All 113 JVM tests, lint and debug assembly passed. Screenshot review is being finalized separately.
+
+Physical sensor validation, 2026-09-07: SENE-A was discovered with plausible live temperature/humidity/pressure/battery readings and registered from its sensor page. Opening history automatically completed a real 130,306-position transfer and displayed 1,010 dated samples plus four undated samples. After force-stop/restart the registration and archive remained available. Opening the overview automatically performed an incremental update, increasing dated samples to 1,011 without losing the archive. The saved timeline includes an old 2023 timestamp; it is preserved as recorded rather than silently discarded. A coverage-warning regression seen on this increment was corrected: known truncation remains attached to the archive even when a subsequent transfer has no new truncation flag.
+
+Independent integration review found and corrected history overview orientation ownership and failure handling for persistable photo permissions. Independent visual review of the real history page requested a smaller readout overlay; normal-font height is now capped at 22%, with coverage/synchronization details available through Info. The orientation/session regression test now passes, including explicit Activity recreation and overview/detail transitions. Final regenerated screenshots are being reviewed separately.

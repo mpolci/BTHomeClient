@@ -21,13 +21,13 @@ class SettingsScreenTest {
             SettingsScreen(state.value, SettingsViewModel.retentions, {}, { state.value = state.value.copy(pending = state.value.pending.copy(retentionDurationMillis = it), edited = true) }, { saves++ })
         }
         compose.onNodeWithText("This setting applies to downloaded history for registered sensors.").assertIsDisplayed()
-        listOf("Unlimited", "7 days", "30 days", "90 days", "365 days").forEach { compose.onNodeWithText(it).assertIsDisplayed() }
+        listOf("Unlimited", "7 days", "30 days", "90 days", "365 days").forEach { compose.onNodeWithText(it).performScrollTo().assertIsDisplayed() }
         compose.onNodeWithTag("settings-retention-unlimited").assertIsSelected()
-        compose.onNodeWithTag("settings-retention-2592000000").performClick()
+        compose.onNodeWithTag("settings-retention-2592000000").performScrollTo().performClick()
         compose.onNodeWithTag("settings-retention-2592000000").assertIsSelected()
-        compose.onNodeWithTag("settings-save").performClick(); assertEquals(1, saves)
+        compose.onNodeWithTag("settings-save").performScrollTo().performClick(); assertEquals(1, saves)
         compose.runOnIdle { state.value = state.value.copy(error = "Unable to save settings.", isSaving = true) }
-        compose.onNodeWithText("Unable to save settings.").assertIsDisplayed()
+        compose.onNodeWithText("Unable to save settings.").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("settings-save").assertIsNotEnabled()
     }
 }

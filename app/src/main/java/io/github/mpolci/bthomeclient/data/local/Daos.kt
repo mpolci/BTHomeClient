@@ -122,4 +122,17 @@ interface DownloadedHistoryDao {
         commitDownload(samples, state, mergeExactSourceRecords)
         return true
     }
+
+    @Transaction
+    suspend fun commitRetainedForRegistration(
+        samples: List<DownloadedHistorySampleEntity>,
+        state: HistorySyncStateEntity,
+        mergeExactSourceRecords: Boolean,
+        expectedRegistrationId: String,
+        retentionCutoff: Long?,
+    ): Boolean {
+        if (!commitForRegistration(samples, state, mergeExactSourceRecords, expectedRegistrationId)) return false
+        if (retentionCutoff != null) deleteDatedSamplesOlderThan(retentionCutoff)
+        return true
+    }
 }

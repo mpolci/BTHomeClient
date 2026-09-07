@@ -20,6 +20,7 @@ import io.github.mpolci.bthomeclient.data.repository.HistoryRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
@@ -42,11 +43,12 @@ class AppContainer(context: Context) {
 
     val settings = sensorCoordinator.settings
     val bleScanner = AndroidBleScanner(context, SystemClock, BTHomeV2Parser())
-    private val historyRepository = HistoryRepository(AndroidHistoryDownloader(context), database.downloadedHistoryDao(), SystemClock, sensorMutationMutex)
+    private val historyRepository = HistoryRepository(AndroidHistoryDownloader(context), database.downloadedHistoryDao(), SystemClock, sensorMutationMutex) { settingsRepository.settings.first().retentionDurationMillis }
+    val historySession = io.github.mpolci.bthomeclient.data.repository.HistorySessionCoordinator(historyRepository, CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate))
     fun createMainScanViewModel() = MainScanViewModel(bleScanner, sensorCoordinator)
     fun createRegistrationViewModel(address: SensorAddress) = RegistrationViewModel(address, sensorCoordinator)
     fun createDetailViewModel(address: SensorAddress) = DetailViewModel(address, sensorCoordinator)
     fun createSettingsViewModel() = SettingsViewModel(sensorCoordinator)
     fun historyRepository() = historyRepository
-    fun createHistoryViewModel(address: SensorAddress) = HistoryViewModel(address, historyRepository)
+    fun createHistoryViewModel(address: SensorAddress?, selection: io.github.mpolci.bthomeclient.ui.history.HistorySelection? = null) = HistoryViewModel(address, sensorCoordinator, historyRepository, historySession, selection)
 }
