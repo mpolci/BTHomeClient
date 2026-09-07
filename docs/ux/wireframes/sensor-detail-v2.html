@@ -1,0 +1,141 @@
+<div id="boat-sensor-detail-v2" aria-label="Sensor page wireframe">
+  <style>
+    #boat-sensor-detail-v2 { --sensor-bg:light-dark(#fafafa,#202020); --sensor-surface:light-dark(#ffffff,#292929); --sensor-ink:light-dark(#242424,#ededed); --sensor-muted:light-dark(#545454,#c1c1c1); --sensor-border:light-dark(#c7c7c7,#626262); font:14px system-ui,sans-serif; color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 * { box-sizing:border-box; }
+    #boat-sensor-detail-v2 .phone { width:100%; max-width:390px; margin:auto; padding:16px; border:1px solid var(--sensor-border); border-radius:20px; background:var(--sensor-bg); }
+    #boat-sensor-detail-v2 .bar { display:flex; align-items:center; gap:12px; margin-bottom:18px; min-height:44px; }
+    #boat-sensor-detail-v2 .back { font-size:20px; }
+    #boat-sensor-detail-v2 .bar-label { font-size:16px; }
+    #boat-sensor-detail-v2 .identity { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    #boat-sensor-detail-v2 .photo { width:60px; height:60px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:1px solid var(--sensor-border); border-radius:8px; color:var(--sensor-muted); font-size:12px; }
+    #boat-sensor-detail-v2 .photo svg { width:24px; height:24px; }
+    #boat-sensor-detail-v2 h2 { margin:0; font-size:22px; font-weight:500; overflow-wrap:anywhere; }
+    #boat-sensor-detail-v2 .placement { margin:5px 0 0; color:var(--sensor-muted); font-size:13px; }
+    #boat-sensor-detail-v2 .registration { display:inline-block; margin-top:6px; border:1px solid var(--sensor-border); padding:3px 6px; border-radius:4px; font-size:12px; }
+    #boat-sensor-detail-v2 .readings { padding:0 0 16px; border-bottom:1px solid var(--sensor-border); }
+    #boat-sensor-detail-v2 .measurements { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 8px; margin:0; }
+    #boat-sensor-detail-v2 dt { font-size:12px; color:var(--sensor-muted); margin:0 0 4px; }
+    #boat-sensor-detail-v2 dd { margin:0; }
+    #boat-sensor-detail-v2 .measurements dd { font-size:18px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    #boat-sensor-detail-v2 .measurements dd span { font-size:12px; }
+    #boat-sensor-detail-v2 .status { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; margin:16px 0 0; }
+    #boat-sensor-detail-v2 .battery { display:flex; align-items:center; gap:6px; }
+    #boat-sensor-detail-v2 .battery svg { width:18px; height:18px; }
+    #boat-sensor-detail-v2 .history { margin:20px 0; }
+    #boat-sensor-detail-v2 .action { display:block; width:100%; min-height:44px; padding:11px 12px; font:inherit; border:1px solid var(--sensor-border); border-radius:8px; color:var(--sensor-ink); background:var(--sensor-surface); text-align:center; }
+    #boat-sensor-detail-v2 .primary { background:var(--sensor-ink); color:var(--sensor-bg); border-color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 .hint { font-size:12px; color:var(--sensor-muted); margin:7px 0 0; }
+    #boat-sensor-detail-v2 .facts { margin:0 0 14px; }
+    #boat-sensor-detail-v2 .facts div { margin-top:12px; }
+    #boat-sensor-detail-v2 .facts dd { overflow-wrap:anywhere; }
+    #boat-sensor-detail-v2 footer { font-size:11px; color:var(--sensor-muted); margin-top:20px; }
+    #boat-sensor-detail-v2 [hidden] { display:none !important; }
+    #boat-sensor-detail-v2 .identity-text { flex:1; min-width:0; }
+    #boat-sensor-detail-v2 .editable-row { display:block; }
+    #boat-sensor-detail-v2 button { cursor:pointer; font:inherit; color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 .edit-field { width:44px; height:44px; padding:0; margin-left:6px; border:0; background:transparent; display:inline-flex; vertical-align:middle; align-items:center; justify-content:flex-start; color:var(--sensor-muted); }
+    #boat-sensor-detail-v2 .edit-field svg { width:1em; height:1em; stroke-width:1.5; }
+    #boat-sensor-detail-v2 .photo-column { width:60px; flex-shrink:0; align-self:flex-start; }
+    #boat-sensor-detail-v2 .photo img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+    #boat-sensor-detail-v2 .photo { background:var(--sensor-surface); padding:0; overflow:hidden; }
+    #boat-sensor-detail-v2 .remove-photo { min-height:44px; width:100%; padding:4px 0; border:0; background:transparent; font-size:11px; color:var(--sensor-muted); }
+    #boat-sensor-detail-v2 button:focus-visible, #boat-sensor-detail-v2 input:focus-visible { outline:2px solid var(--sensor-ink); outline-offset:2px; }
+    #boat-sensor-detail-v2 dialog { width:min(320px,calc(100% - 32px)); padding:20px; border:1px solid var(--sensor-border); border-radius:12px; background:var(--sensor-surface); color:var(--sensor-ink); }
+    #boat-sensor-detail-v2 dialog::backdrop { background:light-dark(#00000055,#00000088); }
+    #boat-sensor-detail-v2 dialog label { display:block; font-size:18px; margin-bottom:16px; }
+    #boat-sensor-detail-v2 dialog input { width:100%; min-height:48px; padding:10px; border:1px solid var(--sensor-border); border-radius:6px; font:16px system-ui,sans-serif; color:var(--sensor-ink); background:var(--sensor-bg); }
+    #boat-sensor-detail-v2 .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+    #boat-sensor-detail-v2 .dialog-actions button { min-height:44px; padding:8px 14px; border:1px solid var(--sensor-border); border-radius:6px; background:var(--sensor-bg); }
+    #boat-sensor-detail-v2 .removal-area { border-top:1px solid var(--sensor-border); margin-top:24px; padding-top:12px; }
+    #boat-sensor-detail-v2 .remove-sensor { min-height:44px; padding:8px 0; border:0; background:transparent; color:light-dark(#a12622,#ffb4ab); }
+    #boat-sensor-detail-v2 .removal-dialog h3 { font-size:18px; font-weight:500; margin:0 0 14px; overflow-wrap:anywhere; }
+    #boat-sensor-detail-v2 .removal-dialog p { line-height:1.5; margin:10px 0; }
+    #boat-sensor-detail-v2 .dialog-actions .confirm-removal { background:light-dark(#a12622,#ffb4ab); color:light-dark(#ffffff,#40100d); border-color:transparent; }
+  </style>
+  <section class="phone"></section>
+  <dialog aria-labelledby="sensor-field-label"><label id="sensor-field-label" for="sensor-field-input">Edit name</label><input id="sensor-field-input" autocomplete="off"><p class="hint dialog-hint"></p><div class="dialog-actions"><button class="cancel-field" type="button">Cancel</button><button class="save-field" type="button">Save</button></div></dialog>
+  <dialog class="removal-dialog" aria-labelledby="sensor-removal-title" aria-describedby="sensor-removal-impact"><h3 id="sensor-removal-title">Remove sensor?</h3><p id="sensor-removal-impact">Its local name, placement, photo and downloaded history will be deleted from this app.</p><p class="hint">History stored on the sensor will not be erased.</p><div class="dialog-actions"><button class="cancel-removal" type="button">Cancel</button><button class="confirm-removal" type="button">Remove sensor</button></div></dialog>
+  <input class="photo-file" type="file" accept="image/*" aria-label="Choose sensor photo" hidden>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-sensor-detail-v2');
+      const state = {example:'liveOnly'};
+      const dialog = root.querySelector('dialog');
+      const removalDialog = root.querySelector('.removal-dialog');
+      let removalTarget = null;
+      const input = root.querySelector('#sensor-field-input');
+      const escape = value => String(value).replace(/[&<>"']/g,c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      let editedField = null;
+      let photoRevision = 0;
+      const examples = {
+        registered:{name:'Forward cabin',placement:'Above the wardrobe',photo:true,registered:true,history:true,battery:86,age:'12 seconds ago',broadcast:'SENE-1A2B',address:'AA:BB:CC:DD:EE:01',values:[26.4,64,1013]},
+        detected:{name:'SENE-7C2A',placement:'',photo:false,registered:false,history:true,battery:73,age:'5 seconds ago',broadcast:'SENE-7C2A',address:'AA:BB:CC:DD:EE:02',values:[25.8,66,1013]},
+        liveOnly:{name:'Battery temperature',placement:'',photo:false,registered:true,history:false,battery:null,age:'20 seconds ago',broadcast:'Battery temperature',address:'AA:BB:CC:DD:EE:03',values:[31.2,null,null]}
+      };
+      Object.values(examples).forEach(sensor => { sensor.downloadedHistoryPresent = sensor.registered && sensor.history; });
+      function render() {
+        const sensor = examples[state.example];
+        const measurements = sensor.values.map((value,i) => value===null?'':`<div><dt>${['Temperature','Humidity','Pressure'][i]}</dt><dd>${value} <span>${['°C','%','hPa'][i]}</span></dd></div>`).join('');
+        const history = !sensor.registered ? '<div class="history"><button class="action primary register" type="button">Register sensor</button></div>' : sensor.history ? `<div class="history"><div class="action primary">Open history →</div><p class="hint">${sensor.downloadedHistoryPresent?'Updates automatically when opened.':'No history downloaded. Downloads when opened.'}</p></div>` : '<div class="history"><p class="hint">This sensor does not store history.</p></div>';
+        const editButton = field => sensor.registered?`<button class="edit-field" type="button" data-field="${field}" aria-label="Edit ${field==='name'?'local name':'placement'}"><i data-lucide="pencil" aria-hidden="true"></i></button>`:'';
+        const photo = sensor.registered?`<div class="photo-column"><button class="photo choose-photo" type="button" aria-label="${sensor.photo?'Change sensor photo':'Add sensor photo'}">${typeof sensor.photo==='string'?`<img src="${escape(sensor.photo)}" alt="Sensor photo">`:`<i data-lucide="${sensor.photo?'image':'image-plus'}" aria-hidden="true"></i><span>${sensor.photo?'Photo':'Add photo'}</span>`}</button>${sensor.photo?'<button class="remove-photo" type="button">Remove</button>':''}</div>`:'';
+        root.querySelector('.phone').innerHTML = `<div class="bar"><span class="back" aria-hidden="true">←</span><span class="bar-label">Sensor</span></div><div class="identity">${photo}<div class="identity-text"><div class="editable-row"><h2>${escape(sensor.name)}${editButton('name')}</h2></div>${sensor.registered?`<div class="editable-row"><p class="placement">${escape(sensor.placement || 'Add placement')}${editButton('placement')}</p></div>`:''}${sensor.registered?'':'<span class="registration">Not registered</span>'}</div></div><section class="readings" aria-label="Latest readings"><dl class="measurements">${measurements}</dl></section><section aria-label="Sensor information"><dl class="status"><div><dt>Last received</dt><dd>${sensor.age}</dd></div>${sensor.battery===null?'':`<div><dt>Sensor battery</dt><dd class="battery"><i data-lucide="battery-full" aria-hidden="true"></i>${sensor.battery}%</dd></div>`}</dl><dl class="facts"><div><dt>Broadcast name</dt><dd>${sensor.broadcast}</dd></div><div><dt>Bluetooth address</dt><dd>${sensor.address}</dd></div><div><dt>History support</dt><dd>${sensor.history?'Available':'Not supported'}</dd></div></dl></section>${history}${sensor.registered?'<div class="removal-area"><button class="remove-sensor" type="button">Remove sensor</button></div>':''}<footer>Screen wireframe · illustrative data and addresses</footer>`;
+        root.querySelectorAll('[data-field]').forEach(button => { button.onclick = () => {
+          editedField = button.dataset.field;
+          root.querySelector('#sensor-field-label').textContent = editedField==='name'?'Name in this app':'Placement · optional';
+          root.querySelector('.dialog-hint').textContent = editedField==='name'?'The broadcast name stays unchanged.':'Leave empty to remove the description.';
+          input.value = sensor[editedField];
+          dialog.showModal(); input.focus(); input.select();
+        }; });
+        const register = root.querySelector('.register');
+        if(register) register.onclick = () => { sensor.registered = true; sensor.name = sensor.broadcast; render(); root.querySelector('[data-field="name"]').focus({preventScroll:true}); };
+        const choose = root.querySelector('.choose-photo');
+        if(choose) choose.onclick = () => root.querySelector('.photo-file').click();
+        const remove = root.querySelector('.remove-photo');
+        if(remove) remove.onclick = () => { photoRevision += 1; sensor.photo = false; render(); root.querySelector('.choose-photo').focus(); };
+        const removeSensor = root.querySelector('.remove-sensor');
+        if(removeSensor) removeSensor.onclick = () => {
+          removalTarget = sensor;
+          root.querySelector('#sensor-removal-title').textContent = `Remove ${sensor.name}?`;
+          removalDialog.showModal(); root.querySelector('.cancel-removal').focus();
+        };
+        if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:18,height:18}});
+      }
+      root.querySelector('.cancel-field').onclick = () => dialog.close();
+      root.querySelector('.cancel-removal').onclick = () => { removalTarget = null; removalDialog.close(); };
+      removalDialog.addEventListener('cancel',() => { removalTarget = null; });
+      root.querySelector('.confirm-removal').onclick = () => {
+        if(!removalTarget || removalTarget!==examples[state.example]) return;
+        const sensor = removalTarget;
+        photoRevision += 1;
+        sensor.registered = false;
+        sensor.name = sensor.broadcast;
+        sensor.placement = '';
+        sensor.photo = false;
+        sensor.downloadedHistoryPresent = false;
+        removalTarget = null; removalDialog.close(); render();
+        root.querySelector('.register').focus();
+      };
+      root.querySelector('.save-field').onclick = () => {
+        const sensor = examples[state.example];
+        sensor[editedField] = input.value.trim() || (editedField==='name'?sensor.broadcast:'');
+        dialog.close(); render(); root.querySelector(`[data-field="${editedField}"]`).focus();
+      };
+      input.onkeydown = event => { if(event.key==='Enter') { event.preventDefault(); root.querySelector('.save-field').click(); } };
+      root.querySelector('.photo-file').onchange = event => {
+        const file = event.target.files[0];
+        if(!file || !file.type.startsWith('image/')) return;
+        const sensor = examples[state.example];
+        const revision = ++photoRevision;
+        const reader = new FileReader();
+        reader.onload = () => { if(revision!==photoRevision || sensor!==examples[state.example]) return; sensor.photo = reader.result; render(); };
+        reader.readAsDataURL(file); event.target.value = '';
+      };
+      render();
+      if(globalThis.Tweak) {
+        const tweak = new Tweak({container:root,onChange:() => { photoRevision += 1; removalTarget = null; dialog.close(); removalDialog.close(); render(); }});
+        tweak.addSelect(state,'example',{label:'Sensor example',options:[{label:'Registered · history',value:'registered'},{label:'Detected · unregistered',value:'detected'},{label:'Registered · live only',value:'liveOnly'}]});
+      }
+    })();
+  </script>
+</div>

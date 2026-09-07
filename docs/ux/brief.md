@@ -37,6 +37,9 @@ See [user scenarios](scenarios.md) for concrete tasks and proposed success crite
 | R13 | In the initial view, show registered sensors before other detected sensors and visually distinguish the two groups. Environmental and technical sensors remain together within this organization. |
 | R14 | Show all available measured quantities for each sensor directly in the live overview, without requiring expansion or selecting a single primary quantity. |
 | R15 | Keep registered sensors and their latest available readings visible without new advertisements; indicate reading age using elapsed reception time. Remove unregistered sensors after five minutes without updates. |
+| R23 | Persist registered sensors' latest available readings and original reception timestamps across app/process restarts. Restore their actual age; retain no live-derived historical series. |
+| R24 | At five minutes without an update, show reception age on registered live cards and remove unregistered sensors. Registered sensors remain visible; receipt of a new update resets freshness. |
+| R25 | Removing a sensor registration also deletes its downloaded history from the app. Do not retain an archive for the removed registration. This local removal does not reset history stored on the physical sensor. |
 | R16 | Place the unregistered indicator beside the sensor name. Show a small battery icon and charge indication only for sensors reporting battery information. |
 | R17 | Treat placement as an optional free-text description, not a sensor grouping or room-management feature. |
 | R18 | Retain an optional image associated with a registered sensor; do not require an image to complete registration. |
@@ -89,12 +92,12 @@ The product owner requires protection against unauthorized changes if device con
 - How should live reading age, unavailable sensors, and previously downloaded data be presented?
 - Which measurements, periods, and comparisons matter for the priority history task?
 - When and how should history downloads be initiated, and how should missing or undated data be explained?
-- What are the intended retention and deletion behaviors, including removing a registration and resetting device history?
+- What are the intended retention and device-history reset behaviors? Removing a registration deletes its local downloaded history (R25/D29); device reset remains separate.
 - Are device controls part of this redesign's first release? Who should be allowed to use them, and can the firmware be changed?
 
 ## Collaboration preference
 
-Ask discovery questions directly in the conversation: the product owner reported that tool-delivered question cards do not appear in their Codex app.
+Ask discovery questions directly in the conversation: the product owner reported that tool-delivered question cards do not appear in their Codex app. Present related small states (loading, empty, error, and similar cases) together for review rather than one per turn. Continue reviewing major screens individually.
 
 ## Pending outcomes
 

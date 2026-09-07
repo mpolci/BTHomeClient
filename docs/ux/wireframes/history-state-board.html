@@ -1,0 +1,32 @@
+<div id="boat-state-board" aria-label="History and Bluetooth state proposals">
+  <style>
+    #boat-state-board { --state-bg:light-dark(#fafafa,#202020); --state-ink:light-dark(#242424,#ededed); --state-muted:light-dark(#545454,#c1c1c1); --state-border:light-dark(#c7c7c7,#626262); font:14px system-ui,sans-serif; color:var(--state-ink); }
+    #boat-state-board * { box-sizing:border-box; }
+    #boat-state-board .states { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    #boat-state-board article { min-width:0; }
+    #boat-state-board .case-label { font-size:12px; font-weight:500; margin:0 0 6px; }
+    #boat-state-board .panel { background:var(--state-bg); border:1px solid var(--state-border); border-radius:10px; padding:18px; min-height:200px; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; }
+    #boat-state-board h3 { font-size:17px; font-weight:500; margin:0 0 8px; }
+    #boat-state-board p { font-size:13px; line-height:1.45; color:var(--state-muted); margin:0 0 12px; }
+    #boat-state-board .action { display:inline-flex; align-items:center; min-height:44px; padding:8px 12px; border:1px solid var(--state-border); border-radius:6px; font-size:13px; }
+    #boat-state-board progress { width:100%; height:6px; margin:6px 0 12px; accent-color:var(--state-ink); }
+    #boat-state-board .status { display:flex; align-items:center; gap:8px; font-size:13px; margin:0 0 12px; }
+    #boat-state-board .status svg { width:18px; height:18px; flex-shrink:0; }
+    #boat-state-board .saved { border-top:1px solid var(--state-border); padding-top:12px; width:100%; }
+    #boat-state-board .saved p { margin:0; }
+    #boat-state-board .context { font-size:12px; }
+    #boat-state-board footer { margin-top:14px; font-size:11px; color:var(--state-muted); }
+    @media(max-width:560px) { #boat-state-board .states { grid-template-columns:1fr; } #boat-state-board .panel { min-height:0; } }
+  </style>
+  <div class="states">
+    <article><h2 class="case-label">1 · First access</h2><div class="panel"><h3>Getting your history</h3><p>Connecting to the sensor…</p><progress aria-label="Connecting to sensor"></progress></div></article>
+    <article><h2 class="case-label">2 · Transfer in progress</h2><div class="panel"><h3>Downloading history</h3><div class="status">40%</div><progress value="40" max="100" aria-label="History download: 40 percent"></progress><p>Keep your phone near the sensor.</p></div></article>
+    <article><h2 class="case-label">3 · Unreachable, no saved data</h2><div class="panel"><h3>No downloaded history yet</h3><p>The sensor could not be reached. Move closer and try again.</p><span class="action">Try again</span></div></article>
+    <article><h2 class="case-label">4 · Sensor reached, history empty</h2><div class="panel"><h3>No measurements recorded</h3><p>The sensor was reached, but its history contains no measurements.</p></div></article>
+    <article><h2 class="case-label">5 · Updating existing history</h2><div class="panel"><div class="status"><i data-lucide="refresh-cw" aria-hidden="true"></i>Updating history…</div><progress aria-label="Updating history"></progress><div class="saved"><h3>Saved history remains visible</h3><p class="context">The chart, selected period and cursor remain usable.</p></div></div></article>
+    <article><h2 class="case-label">6 · Update failed, saved data exists</h2><div class="panel"><div class="status"><i data-lucide="info" aria-hidden="true"></i>History could not be updated</div><p>Showing previously downloaded data.</p><span class="action">Try again</span><p class="context" style="margin:12px 0 0">The chart stays visible.</p></div></article>
+    <article><h2 class="case-label">7 · Bluetooth off</h2><div class="panel"><h3>Turn on Bluetooth</h3><p>Bluetooth is needed to receive readings and download history.</p><span class="action">Turn on Bluetooth</span><p class="context" style="margin:12px 0 0">Previously saved readings and history remain available.</p></div></article>
+    <article><h2 class="case-label">8 · Nearby devices permission missing</h2><div class="panel"><h3>Allow nearby devices</h3><p>Allow access to receive sensor readings and download history.</p><span class="action">Allow access</span><p class="context" style="margin:12px 0 0">If permission must be restored manually, show “Open settings”.</p></div></article>
+  </div>
+  <footer>Proposed state excerpts · actions are illustrative · no device access</footer>
+</div>

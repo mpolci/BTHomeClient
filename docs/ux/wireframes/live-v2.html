@@ -1,0 +1,63 @@
+<div id="boat-live-v2-wireframe" aria-label="Revised live sensor overview wireframe">
+  <style>
+    #boat-live-v2-wireframe { --live-bg:light-dark(#fafafa,#202020); --live-card:light-dark(#ffffff,#292929); --live-ink:light-dark(#242424,#ededed); --live-border:light-dark(#c7c7c7,#626262); --live-muted:light-dark(#545454,#c1c1c1); font:14px system-ui,sans-serif; color:var(--live-ink); }
+    #boat-live-v2-wireframe * { box-sizing:border-box; }
+    #boat-live-v2-wireframe .phone { width:100%; max-width:390px; margin:auto; background:var(--live-bg); border:1px solid var(--live-border); border-radius:20px; padding:18px 16px; }
+    #boat-live-v2-wireframe h2 { margin:6px 0; font-size:24px; font-weight:500; }
+    #boat-live-v2-wireframe .subtitle { color:var(--live-muted); margin:4px 0 20px; font-size:12px; }
+    #boat-live-v2-wireframe h3 { margin:20px 0 10px; font-size:14px; font-weight:500; }
+    #boat-live-v2-wireframe .sensor { background:var(--live-card); border:1px solid var(--live-border); border-radius:10px; padding:var(--live-padding,14px); margin:0 0 10px; }
+    #boat-live-v2-wireframe h4 { margin:0; font-size:16px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #boat-live-v2-wireframe .sensor-heading { display:flex; align-items:center; gap:8px; min-height:24px; margin-bottom:4px; }
+    #boat-live-v2-wireframe .identity { min-width:0; flex:1; }
+    #boat-live-v2-wireframe .name-row { display:flex; align-items:center; gap:6px; min-width:0; }
+    #boat-live-v2-wireframe .placement { margin:3px 0 0; font-size:12px; color:var(--live-muted); overflow-wrap:anywhere; }
+    #boat-live-v2-wireframe .thumbnail { width:40px; height:40px; flex-shrink:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; border:1px solid var(--live-border); border-radius:6px; color:var(--live-muted); font-size:11px; }
+    #boat-live-v2-wireframe .thumbnail svg { width:18px; height:18px; }
+    #boat-live-v2-wireframe .sensor-status { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; min-height:14px; margin-top:10px; }
+    #boat-live-v2-wireframe .battery { display:inline-flex; margin-left:auto; align-self:flex-start; padding-top:3px; align-items:center; flex-shrink:0; color:var(--live-muted); }
+    #boat-live-v2-wireframe .battery svg { width:14px; height:14px; stroke-width:1.5; }
+    #boat-live-v2-wireframe .received { font-size:12px; color:var(--live-muted); margin:0; }
+    #boat-live-v2-wireframe dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 8px; margin:14px 0 0; }
+    #boat-live-v2-wireframe dl div { min-width:0; }
+    #boat-live-v2-wireframe dt { font-size:12px; color:var(--live-muted); margin-bottom:4px; }
+    #boat-live-v2-wireframe dd { margin:0; font-size:20px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    #boat-live-v2-wireframe dd span { font-size:12px; font-weight:400; }
+    #boat-live-v2-wireframe .nearby { margin-top:22px; padding-top:2px; border-top:1px solid var(--live-border); }
+    #boat-live-v2-wireframe .registration { flex-shrink:0; display:inline-block; padding:2px 5px; border:1px solid var(--live-border); border-radius:4px; font-size:11px; white-space:nowrap; }
+  </style>
+  <section class="phone">
+    <header><h2>Live</h2><p class="subtitle">Wireframe · illustrative readings</p></header>
+    <section aria-labelledby="live-v2-registered-heading">
+      <h3 id="live-v2-registered-heading">Registered sensors · 3</h3>
+      <article class="sensor">
+        <div class="sensor-heading"><div class="thumbnail" role="img" aria-label="Placeholder for the optional sensor photo"><i data-lucide="image" aria-hidden="true"></i><span>Photo</span></div><div class="identity"><div class="name-row"><h4>Forward cabin</h4></div><p class="placement">Above the wardrobe</p></div><span class="battery" role="img" aria-label="Sensor battery: high"><i data-lucide="battery-full" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>26.4 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>64 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+      </article>
+      <article class="sensor">
+        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Outdoors</h4></div><p class="placement">Under the cockpit canopy</p></div><span class="battery" role="img" aria-label="Sensor battery: medium"><i data-lucide="battery-medium" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>23.1 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>71 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+        <div class="sensor-status"><p class="received">Received 2 hours ago</p></div>
+      </article>
+      <article class="sensor">
+        <div class="sensor-heading"><div class="identity"><div class="name-row"><h4>Battery temperature</h4></div></div></div><dl><div><dt>Temperature</dt><dd>31.2 <span>°C</span></dd></div></dl>
+      </article>
+    </section>
+    <section class="nearby" aria-labelledby="live-v2-nearby-heading">
+      <h3 id="live-v2-nearby-heading">Other nearby sensors · 1</h3>
+      <article class="sensor">
+        <div class="sensor-heading"><div class="name-row"><h4>SENE-7C2A</h4></div><span class="registration">Not registered</span><span class="battery" role="img" aria-label="Sensor battery: medium"><i data-lucide="battery-medium" aria-hidden="true"></i></span></div><dl><div><dt>Temperature</dt><dd>25.8 <span>°C</span></dd></div><div><dt>Humidity</dt><dd>66 <span>%</span></dd></div><div><dt>Pressure</dt><dd>1013 <span>hPa</span></dd></div></dl>
+      </article>
+    </section>
+  </section>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-live-v2-wireframe');
+      const state = {padding:14};
+      function render() { root.style.setProperty('--live-padding',`${state.padding}px`); }
+      render();
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({container:root,onChange:render});
+        tweak.addSlider(state,'padding',{label:'Sensor card spacing',min:8,max:20,step:2,unit:'px'});
+      }
+    })();
+  </script>
+</div>

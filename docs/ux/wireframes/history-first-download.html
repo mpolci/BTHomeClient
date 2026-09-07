@@ -1,0 +1,56 @@
+<div id="boat-first-history" aria-label="First history download screen wireframe">
+  <style>
+    #boat-first-history { --first-bg:light-dark(#fafafa,#202020); --first-ink:light-dark(#242424,#ededed); --first-muted:light-dark(#545454,#c1c1c1); --first-border:light-dark(#c7c7c7,#626262); font:14px system-ui,sans-serif; color:var(--first-ink); }
+    #boat-first-history * { box-sizing:border-box; }
+    #boat-first-history [hidden] { display:none !important; }
+    #boat-first-history .phone { width:100%; max-width:740px; min-height:390px; margin:auto; padding:12px 20px; border:1px solid var(--first-border); border-radius:16px; background:var(--first-bg); display:flex; flex-direction:column; }
+    #boat-first-history header { display:flex; align-items:center; gap:12px; min-height:44px; }
+    #boat-first-history header span:first-child { font-size:20px; }
+    #boat-first-history h2 { margin:0; font-size:16px; font-weight:500; }
+    #boat-first-history .empty-state { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px 0; }
+    #boat-first-history .symbol { display:flex; align-items:center; justify-content:center; height:36px; margin-bottom:12px; color:var(--first-muted); }
+    #boat-first-history .symbol svg { width:28px; height:28px; }
+    #boat-first-history h3 { font-size:20px; font-weight:500; margin:0 0 8px; }
+    #boat-first-history .description { max-width:400px; line-height:1.5; color:var(--first-muted); margin:0; }
+    #boat-first-history button { min-height:44px; padding:10px 18px; margin-top:18px; font:inherit; color:var(--first-ink); border:1px solid var(--first-border); border-radius:8px; background:var(--first-bg); cursor:pointer; }
+    #boat-first-history button:focus-visible { outline:2px solid var(--first-ink); outline-offset:2px; }
+    #boat-first-history progress { width:160px; height:6px; accent-color:var(--first-ink); }
+    #boat-first-history footer { font-size:11px; color:var(--first-muted); padding-top:8px; }
+  </style>
+  <section class="phone">
+    <header><span aria-hidden="true">←</span><h2>Forward cabin · History</h2></header>
+    <section class="empty-state" aria-live="polite" aria-atomic="true">
+      <div class="symbol" aria-hidden="true"></div>
+      <h3></h3><p class="description"></p>
+      <button class="retry" type="button" hidden>Try again</button>
+    </section>
+    <footer>Screen wireframe · simulated connection · no sensor is contacted</footer>
+  </section>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-first-history');
+      const settings = {outcome:'unreachable'};
+      let stage = 'connecting';
+      let timer = null;
+      function render() {
+        const loading = stage==='connecting';
+        const empty = stage==='empty';
+        root.querySelector('.symbol').innerHTML = loading?'<progress aria-label="Connecting to sensor"></progress>':`<i data-lucide="${empty?'chart-no-axes-combined':'bluetooth-off'}" aria-hidden="true"></i>`;
+        root.querySelector('h3').textContent = loading?'Getting your history':empty?'No measurements recorded':'No downloaded history yet';
+        root.querySelector('.description').textContent = loading?'Connecting to the sensor. History downloads automatically.':empty?'The sensor was reached, but its history contains no measurements.':'The sensor could not be reached. Move closer to it and try again.';
+        root.querySelector('.retry').hidden = loading || empty;
+        if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:28,height:28}});
+      }
+      function start() {
+        clearTimeout(timer); stage = 'connecting'; render();
+        timer = setTimeout(() => { stage = settings.outcome; render(); },1800);
+      }
+      root.querySelector('.retry').onclick = start;
+      start();
+      if(globalThis.Tweak) {
+        const tweak = new Tweak({container:root,onChange:start});
+        tweak.addSelect(settings,'outcome',{label:'Download outcome',options:[{label:'Sensor unreachable',value:'unreachable'},{label:'Reached, empty history',value:'empty'}]});
+      }
+    })();
+  </script>
+</div>

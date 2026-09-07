@@ -24,12 +24,11 @@ Each entry shows when a reading was received. The revised example retains an out
 
 The revised identity area places a small thumbnail beside the name and the optional placement description below the name. The first card includes both (with a clearly labeled photo placeholder), the outdoor card includes only a description, and the technical card includes neither. Measurements retain their full-width row. Exact image size and text wrapping remain layout proposals.
 
-Retaining the latest reading does not create a live-derived time series and does not change R4. Whether the latest reading should survive an app/process restart remains to be specified.
+Retaining the latest reading does not create a live-derived time series and does not change R4. The owner subsequently confirmed persistence of the latest reading and its original reception timestamp across app/process restarts (D27).
 
 ## Open decisions
 
 - Whether freshness is tracked per measurement when one advertisement does not contain all supported quantities.
-- Whether last received readings persist across app/process restarts.
 - Ordering within each section and whether owners can rearrange sensors.
 - Whether and where signal strength is useful. Battery presentation is now defined above.
 - Entry points for registration, sensor management, and history. The first content-layout wireframe does not prescribe navigation.

@@ -1,0 +1,98 @@
+<div id="boat-registration-v2" aria-label="Sensor registration and editing wireframe">
+  <style>
+    #boat-registration-v2 { --edit-bg:light-dark(#fafafa,#202020); --edit-surface:light-dark(#ffffff,#292929); --edit-ink:light-dark(#242424,#ededed); --edit-muted:light-dark(#545454,#c1c1c1); --edit-border:light-dark(#c7c7c7,#626262); font:14px system-ui,sans-serif; color:var(--edit-ink); }
+    #boat-registration-v2 * { box-sizing:border-box; }
+    #boat-registration-v2 [hidden] { display:none !important; }
+    #boat-registration-v2 .phone { width:100%; max-width:390px; margin:auto; padding:16px; border:1px solid var(--edit-border); border-radius:20px; background:var(--edit-bg); }
+    #boat-registration-v2 .bar { display:flex; align-items:center; gap:8px; margin-bottom:22px; }
+    #boat-registration-v2 h2 { flex:1; margin:0; font-size:20px; font-weight:500; }
+    #boat-registration-v2 button { min-height:44px; padding:8px 12px; font:inherit; border:1px solid var(--edit-border); border-radius:8px; background:var(--edit-surface); color:var(--edit-ink); cursor:pointer; }
+    #boat-registration-v2 .cancel { width:44px; padding:10px; border:0; background:transparent; }
+    #boat-registration-v2 .cancel svg { width:20px; height:20px; }
+    #boat-registration-v2 .save { background:var(--edit-ink); color:var(--edit-bg); border-color:var(--edit-ink); }
+    #boat-registration-v2 button:focus-visible, #boat-registration-v2 input:focus-visible { outline:2px solid var(--edit-ink); outline-offset:2px; }
+    #boat-registration-v2 .source { margin:0 0 24px; color:var(--edit-muted); font-size:12px; overflow-wrap:anywhere; }
+    #boat-registration-v2 .field { margin:0 0 24px; }
+    #boat-registration-v2 label, #boat-registration-v2 .field-title { display:block; margin:0 0 8px; font-size:14px; }
+    #boat-registration-v2 .optional { color:var(--edit-muted); font-size:12px; }
+    #boat-registration-v2 input:not([type=file]) { display:block; width:100%; min-height:48px; padding:10px 12px; font:16px system-ui,sans-serif; color:var(--edit-ink); background:var(--edit-surface); border:1px solid var(--edit-border); border-radius:8px; }
+    #boat-registration-v2 .hint { color:var(--edit-muted); font-size:12px; margin:7px 0 0; }
+    #boat-registration-v2 .photo-row { display:flex; align-items:center; gap:14px; }
+    #boat-registration-v2 .photo-box { width:72px; height:72px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border:1px solid var(--edit-border); border-radius:8px; background:var(--edit-surface); color:var(--edit-muted); overflow:hidden; }
+    #boat-registration-v2 .photo-box svg { width:26px; height:26px; }
+    #boat-registration-v2 .photo-box img { width:100%; height:100%; object-fit:cover; }
+    #boat-registration-v2 .photo-actions { display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+    #boat-registration-v2 .remove { border:0; background:transparent; color:var(--edit-muted); }
+    #boat-registration-v2 .feedback { font-size:13px; margin:16px 0; }
+    #boat-registration-v2 footer { font-size:11px; color:var(--edit-muted); margin-top:32px; }
+  </style>
+  <section class="phone">
+    <header class="bar"><button class="cancel" type="button" aria-label="Cancel changes"><i data-lucide="x" aria-hidden="true"></i></button><h2>Register sensor</h2><button class="save" type="button">Save</button></header>
+    <p class="source">Sensor: SENE-7C2A</p>
+    <div class="field"><label for="registration-v2-name">Name in this app</label><input id="registration-v2-name" value="SENE-7C2A" autocomplete="off" aria-describedby="registration-v2-name-hint"><p id="registration-v2-name-hint" class="hint">The name broadcast by the sensor stays unchanged.</p></div>
+    <div class="field"><label for="registration-v2-placement">Placement <span class="optional">· optional</span></label><input id="registration-v2-placement" placeholder="For example, above the wardrobe" autocomplete="off"></div>
+    <div class="field"><p class="field-title">Photo <span class="optional">· optional</span></p><div class="photo-row"><div class="photo-box" role="img" aria-label="No photo selected"><i data-lucide="image" aria-hidden="true"></i></div><div class="photo-actions"><button class="choose" type="button">Choose photo</button><button class="remove" type="button" hidden>Remove</button></div></div><input class="file" type="file" accept="image/*" aria-label="Choose sensor photo" hidden></div>
+    <p class="feedback" role="status" aria-live="polite" hidden></p>
+    <footer>Screen wireframe · changes kept only for this preview</footer>
+  </section>
+  <script>
+    (() => {
+      const root = document.getElementById('boat-registration-v2');
+      const nameInput = root.querySelector('#registration-v2-name');
+      const placementInput = root.querySelector('#registration-v2-placement');
+      const feedback = root.querySelector('.feedback');
+      const options = {mode:'register'};
+      let saved = {name:'SENE-7C2A',placement:'',photo:null};
+      let photo = null;
+      let fileRevision = 0;
+      function icons() { if(globalThis.lucide) globalThis.lucide.createIcons({attrs:{width:20,height:20}}); }
+      function showPhoto() {
+        const box = root.querySelector('.photo-box');
+        box.replaceChildren();
+        if(photo) {
+          const img = document.createElement('img');
+          img.src = photo; img.alt = 'Selected sensor photo'; box.appendChild(img);
+        } else {
+          box.innerHTML = '<i data-lucide="image" aria-hidden="true"></i>';
+          icons();
+        }
+        box.setAttribute('aria-label',photo?'Selected sensor photo':'No photo selected');
+        root.querySelector('.remove').hidden = !photo;
+        root.querySelector('.choose').textContent = photo?'Change photo':'Choose photo';
+      }
+      function notify(message) { feedback.hidden = false; feedback.textContent = message; }
+      function restore() { fileRevision += 1; nameInput.value = saved.name; placementInput.value = saved.placement; photo = saved.photo; showPhoto(); }
+      function setMode() {
+        root.querySelector('h2').textContent = options.mode==='register'?'Register sensor':'Edit sensor';
+        saved = options.mode==='register'?{name:'SENE-7C2A',placement:'',photo:null}:{name:'Forward cabin',placement:'Above the wardrobe',photo:null};
+        root.querySelector('.source').textContent = options.mode==='register'?'Sensor: SENE-7C2A':'Sensor: SENE-1A2B';
+        feedback.hidden = true; restore();
+      }
+      root.querySelector('.save').onclick = () => {
+        const broadcast = options.mode==='register'?'SENE-7C2A':'SENE-1A2B';
+        saved = {name:nameInput.value.trim() || broadcast,placement:placementInput.value.trim(),photo};
+        restore(); notify('Saved in this preview. Return to the sensor page in the app.');
+      };
+      root.querySelector('.cancel').onclick = () => { restore(); notify('Changes discarded. Return to the sensor page in the app.'); };
+      root.querySelector('.choose').onclick = () => root.querySelector('.file').click();
+      root.querySelector('.remove').onclick = () => { fileRevision += 1; photo = null; showPhoto(); feedback.hidden = true; };
+      root.querySelector('.file').onchange = event => {
+        const file = event.target.files[0];
+        if(!file) return;
+        if(!file.type.startsWith('image/')) { notify('Choose an image file.'); return; }
+        const revision = ++fileRevision;
+        const reader = new FileReader();
+        reader.onload = () => { if(revision!==fileRevision) return; photo = reader.result; showPhoto(); feedback.hidden = true; };
+        reader.onerror = () => { if(revision===fileRevision) notify('This image could not be opened.'); };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+      };
+      nameInput.oninput = placementInput.oninput = () => { feedback.hidden = true; };
+      setMode();
+      if(globalThis.Tweak) {
+        const tweak = new Tweak({container:root,onChange:setMode});
+        tweak.addSelect(options,'mode',{label:'Screen state',options:[{label:'Register sensor',value:'register'},{label:'Edit sensor',value:'edit'}]});
+      }
+    })();
+  </script>
+</div>

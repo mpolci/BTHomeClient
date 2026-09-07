@@ -28,3 +28,9 @@ The [connected prototype](prototype.md) now implements direct card-to-registrati
 - Local name requirements and fallback when no broadcast name exists.
 - Presentation of the optional placement description in sensor detail; its presence in the live card is confirmed.
 - Registration entry point and save/cancel behavior, including loss of live reception while editing.
+
+## Registration removal
+
+Confirmed in D29: removing a registration also deletes its downloaded history from the app; no archive remains for that registration. This is a local operation, separate from resetting history on the device.
+
+Proposed interaction for review: expose removal at the bottom of the sensor page and show a confirmation that explicitly mentions loss of downloaded history. The entry point and dialog are now present in `wireframes/sensor-detail-v2.html`; removal changes only the in-memory example. See [sensor page](sensor-page-v2.md#removal-interaction--review-proposal).
