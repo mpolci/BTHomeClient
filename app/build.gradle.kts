@@ -43,6 +43,8 @@ android {
         arg("room.schemaLocation", "$projectDir/schemas")
     }
 
+    sourceSets.getByName("androidTest").assets.directories.add("$projectDir/schemas")
+
 }
 
 dependencies {

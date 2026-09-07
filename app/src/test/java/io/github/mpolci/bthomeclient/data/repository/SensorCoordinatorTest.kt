@@ -44,15 +44,76 @@ class SensorCoordinatorTest {
     }
 
     @Test
-    fun `registration does not persist the current live measurement`() = runTest {
+    fun `registration persists the latest reading without writing history`() = runTest {
         val history = FakeHistoryDao()
-        val coordinator = SensorCoordinator(FakeRegisteredDao(), history, FakeSettings(), FakeClock(1_000), backgroundScope)
+        val registered = FakeRegisteredDao()
+        val coordinator = SensorCoordinator(registered, history, FakeSettings(), FakeClock(1_000), backgroundScope)
         val address = SensorAddress.require("AA:BB:CC:DD:EE:02")
 
         coordinator.observe(observation(address, 1_000, BTHomeV2Parser(), "Sensor", "40 02 C4 09"))
         coordinator.register(address, "Kitchen")
 
         assertEquals(emptyList<DownloadedHistorySampleEntity>(), history.samples.value)
+        assertEquals(1_000L, registered.rows.value.single().latestReadingEpochMillis)
+        assertEquals(25.0, registered.rows.value.single().latestTemperatureCelsius!!, 0.0)
+    }
+
+    @Test
+    fun `latest reading and original reception survive staleness and a new coordinator`() = runTest {
+        val registered = FakeRegisteredDao()
+        val history = FakeHistoryDao()
+        val clock = FakeClock(1_000)
+        val coordinator = SensorCoordinator(registered, history, FakeSettings(), clock, backgroundScope)
+        val address = SensorAddress.require("AA:BB:CC:DD:EE:06")
+        coordinator.observe(observation(address, 1_000, BTHomeV2Parser(), "Sensor", "40 01 50 02 C4 09"))
+        coordinator.register(address, "Cabin")
+        clock.now = 301_000
+        coordinator.onTimeTick()
+        runCurrent()
+        assertEquals(false, coordinator.sensors.value.single().isOnline)
+        assertEquals(25.0, coordinator.sensors.value.single().latestReading!!.measurements.temperatureCelsius!!, 0.0)
+
+        val restarted = SensorCoordinator(registered, history, FakeSettings(), clock, backgroundScope)
+        runCurrent()
+        val restored = restarted.sensors.value.single()
+        assertEquals(null, restored.observation)
+        assertEquals(1_000L, restored.latestReading!!.receptionEpochMillis)
+        assertEquals(80, restored.latestReading!!.measurements.batteryPercent)
+        assertEquals(emptyList<DownloadedHistorySampleEntity>(), history.samples.value)
+    }
+
+    @Test
+    fun `invalid and older advertisements do not refresh or replace saved readings`() = runTest {
+        val registered = FakeRegisteredDao()
+        val clock = FakeClock(1_000)
+        val address = SensorAddress.require("AA:BB:CC:DD:EE:07")
+        val parser = BTHomeV2Parser()
+        val first = SensorCoordinator(registered, FakeHistoryDao(), FakeSettings(), clock, backgroundScope)
+        first.observe(observation(address, 1_000, parser, "Sensor", "40 02 C4 09"))
+        first.register(address, "Cabin")
+        val restarted = SensorCoordinator(registered, FakeHistoryDao(), FakeSettings(), clock, backgroundScope)
+        restarted.observe(observation(address, 500, parser, "Older", "40 02 00 00"))
+        restarted.observe(observation(address, 2_000, parser, "Sensor", "40 02"))
+        runCurrent()
+        val sensor = restarted.sensors.value.single()
+        assertEquals(SensorSupportStatus.Malformed, sensor.supportStatus)
+        assertEquals(1_000L, sensor.latestReading!!.receptionEpochMillis)
+        assertEquals(25.0, sensor.latestReading!!.measurements.temperatureCelsius!!, 0.0)
+        assertEquals(2_000L, registered.rows.value.single().lastSeenEpochMillis)
+    }
+
+    @Test
+    fun `a new valid packet replaces the saved snapshot rather than mixing ages`() = runTest {
+        val registered = FakeRegisteredDao()
+        val coordinator = SensorCoordinator(registered, FakeHistoryDao(), FakeSettings(), FakeClock(1_000), backgroundScope)
+        val address = SensorAddress.require("AA:BB:CC:DD:EE:08")
+        val parser = BTHomeV2Parser()
+        coordinator.observe(observation(address, 1_000, parser, null, "40 02 C4 09"))
+        coordinator.register(address, "Cabin")
+        coordinator.observe(observation(address, 2_000, parser, null, "40 03 BF 13"))
+        assertEquals(null, registered.rows.value.single().latestTemperatureCelsius)
+        assertEquals(50.55, registered.rows.value.single().latestHumidityPercent!!, 0.0)
+        assertEquals(2_000L, registered.rows.value.single().latestReadingEpochMillis)
     }
 
     @Test
@@ -174,6 +235,9 @@ class SensorCoordinatorTest {
         var state: HistorySyncStateEntity? = null
         var lastRetentionCutoff: Long? = null
 
+        override suspend fun registrationId(address: String): String? = null
+        override suspend fun updateHistorySupport(address: String, registrationId: String, support: String) = 0
+        override fun observeSyncState(address: String): Flow<HistorySyncStateEntity?> = MutableStateFlow(state)
         override suspend fun syncState(address: String) = state?.takeIf { it.sensorAddress == address }
         override suspend fun samples(address: String) = samples.value.filter { it.sensorAddress == address }
         override suspend fun samplesAtSource(address: String, formatVersion: Int, generation: Long, slot: Int) = samples.value.filter { it.sensorAddress == address && it.sourceFormatVersion == formatVersion && it.sourceGeneration == generation && it.sourceSlot == slot }

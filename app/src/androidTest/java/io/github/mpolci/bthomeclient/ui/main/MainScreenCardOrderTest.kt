@@ -22,7 +22,7 @@ class MainScreenCardOrderTest {
     @get:Rule val compose = createComposeRule()
 
     @Test
-    fun suppliedCardsKeepOrderAndStatusLabels() {
+    fun registeredCardsPrecedeDetectedCardsWithSectionLabels() {
         val parser = BTHomeV2Parser()
         val registeredAddress = SensorAddress.require("AA:BB:CC:DD:EE:A1")
         val first = MergedSensor(registeredAddress, RegisteredSensor(registeredAddress, "Offline registered", null, null, 1, null, 0, null, 2, false, false, null, null, null, SensorSupportStatus.Supported, emptySet()), null, false, SensorSupportStatus.Supported)
@@ -35,9 +35,9 @@ class MainScreenCardOrderTest {
         val secondBounds = compose.onNodeWithTag("sensor-${secondAddress.value}").fetchSemanticsNode().boundsInRoot
         val thirdBounds = compose.onNodeWithTag("sensor-${thirdAddress.value}").fetchSemanticsNode().boundsInRoot
         assertTrue(firstBounds.top < secondBounds.top && secondBounds.top < thirdBounds.top)
-        compose.onNodeWithText("Registered · Offline").assertIsDisplayed()
-        compose.onNodeWithText("Unregistered · Online").assertIsDisplayed()
+        compose.onNodeWithText("Registered sensors · 1").assertIsDisplayed()
+        compose.onNodeWithText("Other nearby sensors · 2").assertIsDisplayed()
         compose.onNodeWithTag("sensor-${thirdAddress.value}").performScrollTo()
-        compose.onNodeWithText("Unregistered · Online · Unsupported").assertIsDisplayed()
+        compose.onNodeWithText("Unsupported sensor data").assertIsDisplayed()
     }
 }

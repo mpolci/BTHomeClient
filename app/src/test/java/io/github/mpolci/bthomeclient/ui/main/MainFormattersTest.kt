@@ -6,6 +6,13 @@ import org.junit.Test
 
 class MainFormattersTest {
     @Test
+    fun `reading age keeps original time and handles units and future clocks`() {
+        assertEquals("Received 5 minutes ago", formatReadingAge(1_000, 301_000))
+        assertEquals("Received 1 hour ago", formatReadingAge(0, 3_600_000))
+        assertEquals("Received 2 days ago", formatReadingAge(0, 172_800_000))
+        assertEquals("Received 0 seconds ago", formatReadingAge(2_000, 1_000))
+    }
+    @Test
     fun `diagnostic label exposes typed diagnostics but never raw service data`() {
         val label = diagnosticLabel(
             io.github.mpolci.bthomeclient.bthome.BTHomeParseResult.Unsupported(

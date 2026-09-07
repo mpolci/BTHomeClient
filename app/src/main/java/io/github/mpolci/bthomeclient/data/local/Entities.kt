@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.ColumnInfo
 
 @Entity(tableName = "registered_sensors")
 data class RegisteredSensorEntity(
@@ -23,6 +24,14 @@ data class RegisteredSensorEntity(
     val protocolDiagnostic: String?,
     val lastSupportStatus: String?,
     val supportedMeasurementTypes: String?,
+    val latestReadingEpochMillis: Long? = null,
+    val latestTemperatureCelsius: Double? = null,
+    val latestHumidityPercent: Double? = null,
+    val latestPressureHectopascals: Double? = null,
+    val latestCarbonDioxidePpm: Int? = null,
+    val latestBatteryPercent: Int? = null,
+    @ColumnInfo(defaultValue = "''") val registrationId: String = "",
+    val historySupport: String? = null,
 )
 
 @Entity(

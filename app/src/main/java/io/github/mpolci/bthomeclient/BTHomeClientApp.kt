@@ -38,6 +38,7 @@ import io.github.mpolci.bthomeclient.app.simpleViewModelFactory
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import io.github.mpolci.bthomeclient.ui.registration.RegistrationScreen
 import io.github.mpolci.bthomeclient.ui.registration.RegistrationViewModel
 import io.github.mpolci.bthomeclient.ui.detail.DetailScreen
@@ -67,10 +68,15 @@ fun BTHomeClientApp() {
     val state by model.state.collectAsStateWithLifecycle()
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { refresh() }
     val navController = rememberNavController()
+    val currentEntry by navController.currentBackStackEntryAsState()
+    val scanningRoute = currentEntry?.destination?.route.let { it == null || it == AppRoutes.Main || it == AppRoutes.Detail }
+    LifecycleStartEffect(scanningRoute) {
+        if (scanningRoute) model.screenStarted()
+        onStopOrDispose { if (scanningRoute) model.screenStopped() }
+    }
     NavHost(navController, AppRoutes.Main) {
         composable(AppRoutes.Main) {
-            LifecycleStartEffect(Unit) { model.screenStarted(); onStopOrDispose { model.screenStopped() } }
-            MainScreen(state, { requested = true; permissions.launch(arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)) }, { try { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(android.net.Uri.parse("package:${context.packageName}"))) } catch (_: Exception) { refresh() } }, { try { enableBluetooth.launch(Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)) } catch (_: Exception) { refresh() } }, { refresh(); model.retry() }, { navController.navigate(AppRoutes.Settings) }, { navController.navigate(AppRoutes.registration(it.address)) }, { navController.navigate(AppRoutes.detail(it.address)) })
+            MainScreen(state, { requested = true; permissions.launch(arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)) }, { try { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(android.net.Uri.parse("package:${context.packageName}"))) } catch (_: Exception) { refresh() } }, { try { enableBluetooth.launch(Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)) } catch (_: Exception) { refresh() } }, { refresh(); model.retry() }, { navController.navigate(AppRoutes.Settings) }, { navController.navigate(AppRoutes.detail(it.address)) }, { navController.navigate(AppRoutes.detail(it.address)) })
         }
         composable(AppRoutes.Registration) { entry ->
             val address = AppRoutes.address(entry.arguments?.getString("address"))
@@ -159,25 +165,17 @@ private fun DetailRoute(
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let {
             runCatching { context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-            viewModel.edit(imageUri = it.toString())
-        }
-    }
-    LaunchedEffect(viewModel) {
-        viewModel.events.collect { event ->
-            if (event is io.github.mpolci.bthomeclient.ui.editor.EditorEvent.Saved ||
-                event is io.github.mpolci.bthomeclient.ui.editor.EditorEvent.Deleted) {
-                onBack()
-            }
+            viewModel.saveImage(it.toString())
         }
     }
     DetailScreen(
         state = state,
         onBack = onBack,
-        onNameChange = { viewModel.edit(name = it) },
-        onRoomChange = { viewModel.edit(room = it) },
+        onSaveName = viewModel::saveName,
+        onSaveRoom = viewModel::saveRoom,
         onChooseImage = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-        onRemoveImage = { viewModel.edit(imageUri = null) },
-        onSave = viewModel::save,
+        onRemoveImage = { viewModel.saveImage(null) },
+        onRegister = viewModel::register,
         onDelete = viewModel::delete,
         onHistory = onHistory,
     )

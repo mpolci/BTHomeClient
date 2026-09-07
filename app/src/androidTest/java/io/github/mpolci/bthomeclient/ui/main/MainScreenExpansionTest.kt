@@ -1,20 +1,11 @@
 package io.github.mpolci.bthomeclient.ui.main
 
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements
 import io.github.mpolci.bthomeclient.bthome.BTHomeV2Parser
-import io.github.mpolci.bthomeclient.domain.model.MergedSensor
-import io.github.mpolci.bthomeclient.domain.model.RegisteredSensor
-import io.github.mpolci.bthomeclient.domain.model.ScanObservation
-import io.github.mpolci.bthomeclient.domain.model.SensorAddress
-import io.github.mpolci.bthomeclient.domain.model.SensorSupportStatus
+import io.github.mpolci.bthomeclient.domain.model.*
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -25,25 +16,42 @@ class MainScreenExpansionTest {
     @get:Rule val compose = createComposeRule()
 
     @Test
-    fun expansionIsChevronOnlyAndBodiesRouteToCorrectCallbacks() {
-        val parser = BTHomeV2Parser()
-        val unregisteredAddress = SensorAddress.require("AA:BB:CC:DD:EE:B1")
+    fun allMeasurementsAreVisibleWithoutExpansionAndCardsKeepTheirCallbacks() {
         val registeredAddress = SensorAddress.require("AA:BB:CC:DD:EE:B2")
-        val unregistered = MergedSensor(unregisteredAddress, null, ScanObservation(unregisteredAddress, "Guest", -50, 1, parser.parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported)
-        val registered = MergedSensor(registeredAddress, RegisteredSensor(registeredAddress, "Known", null, null, 1, null, 1, -50, 2, false, false, null, null, null, SensorSupportStatus.Supported, emptySet()), null, true, SensorSupportStatus.Supported)
-        var registeredClicks = 0
+        val registered = registered(registeredAddress, 1_000)
+        val address = SensorAddress.require("AA:BB:CC:DD:EE:B1")
+        val guest = MergedSensor(address, null, ScanObservation(address, "Guest", -50, 1_000, BTHomeV2Parser().parse(0xFCD2, byteArrayOf(0x40, 0x01, 0x64))), true, SensorSupportStatus.Supported)
+        var registrationClicks = 0
         var detailsClicks = 0
-        compose.setContent { MainScreen(MainScanState(sensors = listOf(unregistered, registered)), {}, {}, {}, {}, {}, { registeredClicks++ }, { detailsClicks++ }) }
-        compose.onNodeWithContentDescription("Expand Guest").performClick()
-        compose.onNodeWithText("Address: ${unregisteredAddress.value}", substring = true).assertIsDisplayed()
-        assertEquals(0, registeredClicks)
-        assertEquals(0, detailsClicks)
-        compose.onNodeWithTag("sensor-body-${unregisteredAddress.value}").performClick()
-        assertEquals(1, registeredClicks)
-        assertEquals(0, detailsClicks)
+        compose.setContent { MainScreen(MainScanState(sensors = listOf(registered, guest), capability = ScanCapability.Ready), {}, {}, {}, {}, {}, { registrationClicks++ }, { detailsClicks++ }, nowEpochMillis = 2_000) }
+        compose.onNodeWithText("Temperature").assertIsDisplayed()
+        compose.onNodeWithText("Humidity").assertIsDisplayed()
+        compose.onNodeWithText("Pressure").assertIsDisplayed()
+        compose.onNodeWithText("CO₂").assertIsDisplayed()
+        compose.onNodeWithText("Above the wardrobe").assertIsDisplayed()
+        compose.onNodeWithText("%.1f °C".format(25.0)).assertIsDisplayed()
+        compose.onAllNodesWithText("86%", substring = true).assertCountEquals(0)
+        compose.onAllNodesWithText("Received", substring = true).assertCountEquals(0)
+        compose.onNodeWithContentDescription("Expand Cabin").assertDoesNotExist()
         compose.onNodeWithTag("sensor-body-${registeredAddress.value}").performClick()
+        compose.onNodeWithTag("sensor-body-${address.value}").performScrollTo().performClick()
         assertEquals(1, detailsClicks)
-        compose.onNodeWithContentDescription("Collapse Guest").performClick()
-        compose.onAllNodesWithText("Address: ${unregisteredAddress.value}", substring = true).assertCountEquals(0)
+        assertEquals(1, registrationClicks)
+    }
+
+    @Test
+    fun savedReadingsRemainVisibleWithTheirAgeWhileBluetoothIsOff() {
+        val address = SensorAddress.require("AA:BB:CC:DD:EE:B3")
+        val sensor = registered(address, 1_000).copy(isOnline = false)
+        compose.setContent { MainScreen(MainScanState(sensors = listOf(sensor), capability = ScanCapability.BluetoothDisabled), {}, {}, {}, {}, {}, {}, {}, nowEpochMillis = 301_000) }
+        compose.onNodeWithText("Enable Bluetooth").assertIsDisplayed()
+        compose.onNodeWithText("%.1f °C".format(25.0)).assertIsDisplayed()
+        compose.onNodeWithText("Received 5 minutes ago").assertIsDisplayed()
+    }
+
+    private fun registered(address: SensorAddress, time: Long): MergedSensor {
+        val record = RegisteredSensor(address, "Cabin", "Above the wardrobe", null, 1, null, time, -50, 2, false, false, null, null, null, SensorSupportStatus.Supported, emptySet(),
+            LatestReading(BTHomeMeasurements(86, 25.0, 50.0, 1013.0, 750), time))
+        return MergedSensor(address, record, null, true, SensorSupportStatus.Supported)
     }
 }

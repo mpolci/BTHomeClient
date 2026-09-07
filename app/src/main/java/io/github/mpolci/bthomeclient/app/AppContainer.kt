@@ -25,7 +25,10 @@ private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
 class AppContainer(context: Context) {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val database = Room.databaseBuilder(context, BTHomeDatabase::class.java, "bthome-client.db").build()
+    private val database = Room.databaseBuilder(context, BTHomeDatabase::class.java, "bthome-client.db")
+        .addMigrations(BTHomeDatabase.MIGRATION_1_3, BTHomeDatabase.MIGRATION_2_3)
+        .build()
+    private val sensorMutationMutex = kotlinx.coroutines.sync.Mutex()
     private val settingsRepository = SettingsRepository(context.settingsDataStore)
 
     val sensorCoordinator = SensorCoordinator(
@@ -34,11 +37,12 @@ class AppContainer(context: Context) {
         settingsRepository = settingsRepository,
         clock = SystemClock,
         applicationScope = applicationScope,
+        mutationMutex = sensorMutationMutex,
     )
 
     val settings = sensorCoordinator.settings
     val bleScanner = AndroidBleScanner(context, SystemClock, BTHomeV2Parser())
-    private val historyRepository = HistoryRepository(AndroidHistoryDownloader(context), database.downloadedHistoryDao(), SystemClock)
+    private val historyRepository = HistoryRepository(AndroidHistoryDownloader(context), database.downloadedHistoryDao(), SystemClock, sensorMutationMutex)
     fun createMainScanViewModel() = MainScanViewModel(bleScanner, sensorCoordinator)
     fun createRegistrationViewModel(address: SensorAddress) = RegistrationViewModel(address, sensorCoordinator)
     fun createDetailViewModel(address: SensorAddress) = DetailViewModel(address, sensorCoordinator)

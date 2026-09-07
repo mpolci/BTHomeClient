@@ -8,6 +8,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 fun formatLastSeen(epochMillis: Long?, zoneId: ZoneId = ZoneId.systemDefault()): String = epochMillis?.let { DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(zoneId).format(Instant.ofEpochMilli(it)) } ?: "—"
+fun formatReadingAge(epochMillis: Long, nowEpochMillis: Long): String {
+    val seconds = ((nowEpochMillis - epochMillis).coerceAtLeast(0) / 1_000)
+    val (count, unit) = when {
+        seconds < 60 -> seconds to "second"
+        seconds < 3_600 -> seconds / 60 to "minute"
+        seconds < 86_400 -> seconds / 3_600 to "hour"
+        else -> seconds / 86_400 to "day"
+    }
+    return "Received $count $unit${if (count == 1L) "" else "s"} ago"
+}
 fun diagnosticLabel(result: BTHomeParseResult?): String = when (result) {
     is BTHomeParseResult.Decoded -> result.advertisement.diagnostics.joinToString { it.toString() }.ifBlank { "None" }
     is BTHomeParseResult.Unsupported -> result.reason.name + result.diagnostics.joinToString(prefix = " · ") { it.toString() }

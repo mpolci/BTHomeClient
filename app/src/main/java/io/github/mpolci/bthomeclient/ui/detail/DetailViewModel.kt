@@ -4,11 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.mpolci.bthomeclient.data.repository.SensorManager
 import io.github.mpolci.bthomeclient.domain.model.MergedSensor
+import io.github.mpolci.bthomeclient.domain.model.ScanObservation
 import io.github.mpolci.bthomeclient.domain.model.SensorAddress
-import io.github.mpolci.bthomeclient.ui.editor.EditorEvent
-import kotlinx.coroutines.flow.MutableSharedFlow
+import io.github.mpolci.bthomeclient.util.Clock
+import io.github.mpolci.bthomeclient.util.SystemClock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
@@ -23,67 +24,115 @@ data class DetailState(
     val imageUri: String? = null,
     val isSaving: Boolean = false,
     val isDeleting: Boolean = false,
+    val isRegistering: Boolean = false,
+    val saveVersion: Int = 0,
     val error: String? = null,
 )
 
 class DetailViewModel(
     private val address: SensorAddress,
     private val manager: SensorManager,
+    private val clock: Clock = SystemClock,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(DetailState())
     val state = mutableState.asStateFlow()
-    private val mutableEvents = MutableSharedFlow<EditorEvent>()
-    val events = mutableEvents.asSharedFlow()
-    private var dirtyName = false
-    private var dirtyRoom = false
-    private var dirtyImage = false
-    private var metadataInitialized = false
+    private var retainedUnregistered: MergedSensor? = null
+    private var retainedObservation: ScanObservation? = null
 
     init {
         viewModelScope.launch {
             manager.sensor(address).collect { sensor ->
-                mutableState.update { current ->
-                    val registered = sensor?.registeredSensor
-                    if (registered == null) current.copy(sensor = sensor, loading = false, notFound = true)
-                    else current.copy(sensor = sensor, loading = false, notFound = false, displayName = if (dirtyName || metadataInitialized) current.displayName else registered.displayName, room = if (dirtyRoom || metadataInitialized) current.room else registered.room.orEmpty(), imageUri = if (dirtyImage || metadataInitialized) current.imageUri else registered.imageUri).also { metadataInitialized = true }
+                sensor?.observation?.let { observation ->
+                    if (retainedObservation?.receptionEpochMillis?.let { it > observation.receptionEpochMillis } != true) retainedObservation = observation
                 }
+                if (sensor?.isRegistered == false) retainedUnregistered = sensor
+                if (sensor?.isRegistered == true) retainedUnregistered = null
+                showSensor(sensor ?: retainedUnregistered?.copy(isOnline = false))
             }
         }
     }
 
-    fun edit(name: String = state.value.displayName, room: String = state.value.room, imageUri: String? = state.value.imageUri) {
-        if (name != state.value.displayName) dirtyName = true
-        if (room != state.value.room) dirtyRoom = true
-        if (imageUri != state.value.imageUri) dirtyImage = true
-        mutableState.update { it.copy(displayName = name, room = room, imageUri = imageUri, error = null) }
+    fun saveName(value: String) = saveField {
+        require(value.isNotBlank()) { "A local name is required." }
+        manager.updateLocalName(address, value.trim())
     }
 
-    fun save() = viewModelScope.launch {
-        val current = state.value
-        if (current.isSaving || current.isDeleting || current.displayName.isBlank()) {
-            if (current.displayName.isBlank()) mutableState.update { it.copy(error = "A display name is required.") }
-            return@launch
+    fun saveRoom(value: String) = saveField {
+        manager.updatePlacement(address, value.trim().ifBlank { null })
+    }
+
+    fun saveImage(uri: String?) = saveField {
+        manager.updateImage(address, uri)
+    }
+
+    private fun saveField(update: suspend () -> Unit) = viewModelScope.launch {
+        if (busy() || state.value.sensor?.isRegistered != true) return@launch
+        mutableState.update { it.copy(isSaving = true, error = null) }
+        try {
+            update()
+            mutableState.update { it.copy(saveVersion = it.saveVersion + 1) }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: IllegalArgumentException) {
+            mutableState.update { it.copy(error = error.message ?: "Unable to save sensor.") }
+        } catch (_: Exception) {
+            mutableState.update { it.copy(error = "Unable to save sensor. Try again.") }
+        } finally {
+            mutableState.update { it.copy(isSaving = false) }
         }
-        mutableState.update { it.copy(isSaving = true) }
-        runCatching { manager.updateEditableMetadata(address, current.displayName, current.room, current.imageUri) }
-            .onSuccess { mutableState.update { it.copy(isSaving = false) }; mutableEvents.emit(EditorEvent.Saved) }
-            .onFailure { mutableState.update { it.copy(isSaving = false, error = "Unable to save sensor.") } }
+    }
+
+    fun register() = viewModelScope.launch {
+        val sensor = state.value.sensor ?: return@launch
+        if (busy() || sensor.isRegistered) return@launch
+        val observation = sensor.observation ?: retainedObservation
+        val name = observation?.advertisedName?.trim()?.takeIf { it.isNotBlank() } ?: address.value
+        mutableState.update { it.copy(isRegistering = true, error = null) }
+        try {
+            manager.register(address, name)
+            // A page may outlive the nearby feed. Seed the saved reading with its original reception time.
+            observation?.let { manager.observe(it) }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            mutableState.update { it.copy(error = "Unable to register sensor. Try again.") }
+        } finally {
+            mutableState.update { it.copy(isRegistering = false) }
+        }
     }
 
     fun delete() = viewModelScope.launch {
-        val current = state.value
-        if (current.isSaving || current.isDeleting) return@launch
-
+        val sensor = state.value.sensor ?: return@launch
+        if (busy() || !sensor.isRegistered) return@launch
         mutableState.update { it.copy(isDeleting = true, error = null) }
-        runCatching { manager.deleteRegistration(address) }
-            .onSuccess {
-                mutableState.update { it.copy(isDeleting = false) }
-                mutableEvents.emit(EditorEvent.Deleted)
+        try {
+            manager.deleteRegistration(address)
+            retainedUnregistered = retainedObservation?.takeIf { it.receptionEpochMillis > clock.nowEpochMillis() - 300_000L }?.let {
+                sensor.copy(registeredSensor = null, observation = it, isOnline = true)
             }
-            .onFailure {
-                mutableState.update {
-                    it.copy(isDeleting = false, error = "Unable to remove sensor.")
-                }
-            }
+            showSensor(retainedUnregistered)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            mutableState.update { it.copy(error = "Unable to remove sensor. Try again.") }
+        } finally {
+            mutableState.update { it.copy(isDeleting = false) }
+        }
+    }
+
+    private fun busy() = state.value.let { it.isSaving || it.isDeleting || it.isRegistering }
+
+    private fun showSensor(sensor: MergedSensor?) {
+        mutableState.update { current ->
+            val registered = sensor?.registeredSensor
+            current.copy(
+                sensor = sensor,
+                loading = false,
+                notFound = sensor == null,
+                displayName = registered?.displayName ?: sensor?.observation?.advertisedName?.takeIf { it.isNotBlank() } ?: sensor?.address?.value.orEmpty(),
+                room = registered?.room.orEmpty(),
+                imageUri = registered?.imageUri,
+            )
+        }
     }
 }

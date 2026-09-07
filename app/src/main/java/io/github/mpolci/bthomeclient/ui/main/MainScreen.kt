@@ -1,29 +1,39 @@
 package io.github.mpolci.bthomeclient.ui.main
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import io.github.mpolci.bthomeclient.ble.ScanFailure
+import io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements
 import io.github.mpolci.bthomeclient.domain.model.MergedSensor
 import io.github.mpolci.bthomeclient.domain.model.SensorSupportStatus
-import io.github.mpolci.bthomeclient.ble.ScanFailure
+import io.github.mpolci.bthomeclient.ui.common.SensorImage
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,28 +46,51 @@ fun MainScreen(
     onSettings: () -> Unit,
     onRegister: (MergedSensor) -> Unit,
     onDetails: (MergedSensor) -> Unit,
+    nowEpochMillis: Long = currentEpochMillis(),
 ) {
-    Scaffold(topBar = { TopAppBar(title = { Text("Sensors", Modifier.semantics { heading() }) }, actions = { TextButton(onClick = onSettings, Modifier.semantics { contentDescription = "Settings" }) { Text("Settings") } }) }) { padding ->
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            item { Column(Modifier.padding(horizontal = 16.dp)) {
-            when (state.capability) {
-                ScanCapability.Checking -> Text("Checking Bluetooth capability…")
-                ScanCapability.PermissionMissing -> ActionState("Nearby Devices permission is required.", "Allow", onPermissionRequest)
-                ScanCapability.PermissionPermanentlyDenied -> ActionState("Nearby Devices permission was denied permanently.", "Open settings", onOpenSettings)
-                ScanCapability.BluetoothDisabled -> ActionState("Bluetooth is turned off.", "Enable Bluetooth", onEnableBluetooth)
-                ScanCapability.BleUnsupported -> Text("Bluetooth Low Energy is not supported on this device.")
-                ScanCapability.Ready -> state.failure?.let { failure ->
-                    when (failure) {
-                        ScanFailure.PermissionDenied -> ActionState(failureMessage(failure), "Allow", onPermissionRequest)
-                        ScanFailure.BluetoothDisabled -> ActionState(failureMessage(failure), "Enable Bluetooth", onEnableBluetooth)
-                        is ScanFailure.Platform, ScanFailure.Unavailable -> ActionState(failureMessage(failure), "Retry", onRetry)
+    val registered = state.sensors.filter { it.isRegistered }
+    val detected = state.sensors.filterNot { it.isRegistered }
+    Scaffold(topBar = { TopAppBar(title = { Text("Live", Modifier.semantics { heading() }) }, actions = { TextButton(onClick = onSettings, Modifier.semantics { contentDescription = "Settings" }) { Text("Settings") } }) }) { padding ->
+        LazyColumn(
+            Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (state.capability != ScanCapability.Ready || state.failure != null || state.sensors.isEmpty()) item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    when (state.capability) {
+                        ScanCapability.Checking -> Text("Checking Bluetooth capability…")
+                        ScanCapability.PermissionMissing -> ActionState("Nearby Devices permission is required.", "Allow", onPermissionRequest)
+                        ScanCapability.PermissionPermanentlyDenied -> ActionState("Nearby Devices permission was denied permanently.", "Open settings", onOpenSettings)
+                        ScanCapability.BluetoothDisabled -> ActionState("Bluetooth is turned off.", "Enable Bluetooth", onEnableBluetooth)
+                        ScanCapability.BleUnsupported -> Text("Bluetooth Low Energy is not supported on this device.")
+                        ScanCapability.Ready -> state.failure?.let { failure ->
+                            when (failure) {
+                                ScanFailure.PermissionDenied -> ActionState(failureMessage(failure), "Allow", onPermissionRequest)
+                                ScanFailure.BluetoothDisabled -> ActionState(failureMessage(failure), "Enable Bluetooth", onEnableBluetooth)
+                                is ScanFailure.Platform, ScanFailure.Unavailable -> ActionState(failureMessage(failure), "Retry", onRetry)
+                            }
+                        }
+                    }
+                    if (state.sensors.isEmpty() && state.capability == ScanCapability.Ready && state.failure == null) {
+                        if (state.isScanning) LinearProgressIndicator(Modifier.fillMaxWidth())
+                        Text(if (state.isScanning) "No sensors found yet. Scanning is active." else "No sensors found. Scanning is not active.")
                     }
                 }
             }
-            if (state.isScanning) LinearProgressIndicator(Modifier.fillMaxWidth())
-            if (state.sensors.isEmpty() && state.capability == ScanCapability.Ready && state.failure == null) Text(if (state.isScanning) "No sensors found yet. Scanning is active." else "No sensors found. Scanning is not active.")
-            } }
-            items(state.sensors, key = { it.address.value }) { sensor -> SensorCard(sensor, onRegister, onDetails, Modifier.padding(horizontal = 16.dp)) }
+            if (registered.isNotEmpty()) {
+                item(key = "registered-heading") { SensorSectionTitle("Registered sensors", registered.size) }
+                items(registered, key = { it.address.value }) { sensor -> SensorCard(sensor, onRegister, onDetails, nowEpochMillis) }
+            }
+            if (detected.isNotEmpty()) {
+                item(key = "detected-heading") {
+                    Column {
+                        if (registered.isNotEmpty()) HorizontalDivider(Modifier.padding(top = 8.dp, bottom = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                        SensorSectionTitle("Other nearby sensors", detected.size)
+                    }
+                }
+                items(detected, key = { it.address.value }) { sensor -> SensorCard(sensor, onRegister, onDetails, nowEpochMillis) }
+            }
         }
     }
 }
@@ -65,51 +98,97 @@ fun MainScreen(
 @Composable private fun ActionState(message: String, action: String, onAction: () -> Unit) { Text(message); Button(onClick = onAction) { Text(action) } }
 
 @Composable
-private fun SensorCard(sensor: MergedSensor, onRegister: (MergedSensor) -> Unit, onDetails: (MergedSensor) -> Unit, modifier: Modifier) {
-    var expanded by rememberSaveable(sensor.address.value) { mutableStateOf(false) }
-    val measurements = sensor.observation?.measurements
+private fun SensorSectionTitle(title: String, count: Int) {
+    Text("$title · $count", Modifier.padding(horizontal = 4.dp).semantics { heading() }, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+private fun SensorCard(sensor: MergedSensor, onRegister: (MergedSensor) -> Unit, onDetails: (MergedSensor) -> Unit, nowEpochMillis: Long) {
+    val reading = sensor.latestReading
     val name = sensor.registeredSensor?.displayName ?: sensor.observation?.advertisedName ?: sensor.address.value
-    val availability = if (sensor.isOnline) "Online" else "Offline"
-    val status = when (sensor.supportStatus) {
-        SensorSupportStatus.Supported -> availability
-        SensorSupportStatus.Unsupported -> "$availability · Unsupported"
-        SensorSupportStatus.Malformed -> "$availability · Malformed"
-    }
-    val cardColors = if (sensor.isRegistered) {
-        CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-    } else {
-        CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    ElevatedCard(
-        modifier = modifier.fillMaxWidth().testTag("sensor-${sensor.address.value}"),
-        colors = cardColors,
+    Card(
+        modifier = Modifier.fillMaxWidth().testTag("sensor-${sensor.address.value}"),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(Modifier.testTag("sensor-body-${sensor.address.value}").clickable { if (sensor.isRegistered) onDetails(sensor) else onRegister(sensor) }.padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column { Text(name, style = MaterialTheme.typography.titleMedium); Text(if (sensor.isRegistered) "Registered · $status" else "Unregistered · $status") }
-                IconButton(onClick = { expanded = !expanded }, Modifier.semantics { contentDescription = if (expanded) "Collapse $name" else "Expand $name" }) { Text(if (expanded) "⌃" else "⌄") }
+        Column(Modifier.fillMaxWidth().testTag("sensor-body-${sensor.address.value}").clickable { if (sensor.isRegistered) onDetails(sensor) else onRegister(sensor) }.padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                sensor.registeredSensor?.imageUri?.let { SensorImage(it, size = 40.dp) }
+                Column(Modifier.weight(1f)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(name, Modifier.weight(1f, fill = false), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (!sensor.isRegistered) Surface(shape = MaterialTheme.shapes.small, color = Color.Transparent, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                            Text("Not registered", Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    sensor.registeredSensor?.room?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                }
+                reading?.measurements?.batteryPercent?.let { BatteryIndicator(it) }
             }
-            if (measurements == null) Text("No live reading available") else SensorMeasurements(measurements)
-            if (expanded) Text("Address: ${sensor.address.value}\nRSSI: ${sensor.observation?.rssi ?: "—"}\nLast seen: ${formatLastSeen(sensor.observation?.receptionEpochMillis ?: sensor.registeredSensor?.lastSeenEpochMillis)}\nBTHome version: ${sensor.observation?.deviceInformation?.version ?: sensor.registeredSensor?.lastBTHomeVersion ?: "—"}\nEncrypted: ${sensor.observation?.deviceInformation?.encrypted ?: sensor.registeredSensor?.lastEncrypted ?: "—"}\nTrigger based: ${sensor.observation?.deviceInformation?.triggerBased ?: sensor.registeredSensor?.lastTriggerBased ?: "—"}\nPacket ID: ${sensor.observation?.metadata?.packetId ?: "—"}\nDevice type: ${sensor.observation?.metadata?.deviceType ?: sensor.registeredSensor?.deviceType ?: "—"}\nFirmware: ${sensor.observation?.metadata?.firmwareVersion ?: sensor.registeredSensor?.firmwareVersion ?: "—"}\nSupported: ${(if (sensor.isRegistered) sensor.registeredSensor?.supportedMeasurementTypes else measurements?.let(::measurementTypes))?.joinToString() ?: "—"}\nDiagnostic: ${sensor.registeredSensor?.protocolDiagnostic ?: diagnosticLabel(sensor.observation?.parseResult)}")
+            if (reading != null) SensorMeasurements(reading.measurements)
+            else Text("No reading available", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.bodyMedium)
+            when (sensor.supportStatus) {
+                SensorSupportStatus.Unsupported -> Text("Unsupported sensor data", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                SensorSupportStatus.Malformed -> Text("Sensor data could not be read", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                SensorSupportStatus.Supported -> Unit
+            }
+            reading?.takeIf { nowEpochMillis - it.receptionEpochMillis >= 300_000L }?.let {
+                Text(formatReadingAge(it.receptionEpochMillis, nowEpochMillis), Modifier.padding(top = 14.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
 
 @Composable
-private fun SensorMeasurements(values: io.github.mpolci.bthomeclient.bthome.BTHomeMeasurements) {
-    Column {
-        values.temperatureCelsius?.let { value -> Text("Temperature: %.2f °C".format(value)) }
-        values.humidityPercent?.let { value -> Text("Humidity: %.2f %%".format(value)) }
-        values.pressureHectopascals?.let { value -> Text("Pressure: %.2f hPa".format(value)) }
-        values.carbonDioxidePpm?.let { value -> Text("CO₂: $value ppm") }
-        values.batteryPercent?.let { value -> Text("Battery: $value%") }
+private fun SensorMeasurements(values: BTHomeMeasurements) {
+    val measurements = buildList {
+        values.temperatureCelsius?.let { add(Triple("Temperature", "%.1f".format(it), "°C")) }
+        values.humidityPercent?.let { add(Triple("Humidity", "%.1f".format(it), "%")) }
+        values.pressureHectopascals?.let { add(Triple("Pressure", "%.0f".format(it), "hPa")) }
+        values.carbonDioxidePpm?.let { add(Triple("CO₂", it.toString(), "ppm")) }
     }
+    if (measurements.isEmpty()) return
+    val fontScale = LocalDensity.current.fontScale
+    val unitStyle = MaterialTheme.typography.bodySmall.toSpanStyle().copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 16.dp)) {
+        val columns = (maxWidth.value / (88 * fontScale)).toInt().coerceIn(1, 3)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            measurements.chunked(columns).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { (label, value, unit) ->
+                        Column(Modifier.weight(1f)) {
+                            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(buildAnnotatedString { append(value); withStyle(unitStyle) { append(" $unit") } }, style = MaterialTheme.typography.headlineSmall)
+                        }
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BatteryIndicator(percent: Int) {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    val level = percent.coerceIn(0, 100)
+    Canvas(Modifier.padding(top = 4.dp).size(18.dp, 12.dp).semantics {
+        contentDescription = "Sensor battery"
+        progressBarRangeInfo = ProgressBarRangeInfo(level.toFloat(), 0f..100f)
+    }) {
+        val stroke = 1.dp.toPx()
+        val bodyWidth = size.width - 2.dp.toPx()
+        drawRoundRect(color, Offset(stroke / 2, stroke / 2), Size(bodyWidth - stroke, size.height - stroke), CornerRadius(stroke), style = Stroke(stroke))
+        drawRect(color, Offset(bodyWidth, size.height * .3f), Size(2.dp.toPx(), size.height * .4f))
+        drawRect(color, Offset(stroke * 2, stroke * 2), Size((bodyWidth - stroke * 4) * level / 100f, size.height - stroke * 4))
+    }
+}
+
+@Composable
+private fun currentEpochMillis(): Long {
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) { delay(1_000); value = System.currentTimeMillis() }
+    }
+    return now
 }
 
 private fun failureMessage(failure: ScanFailure): String = when (failure) {

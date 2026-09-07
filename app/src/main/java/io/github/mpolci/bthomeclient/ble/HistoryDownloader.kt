@@ -112,9 +112,9 @@ class AndroidHistoryDownloader(
                 val service = gatt.getService(SeneHistoryProtocol.serviceUuid)
                     ?: throw HistoryDownloadException.Unsupported()
                 val control = service.getCharacteristic(SeneHistoryProtocol.controlPointUuid)
-                    ?: throw HistoryDownloadException.Unsupported()
+                    ?: throw HistoryDownloadException.Protocol("The history service is missing its control point.")
                 val data = service.getCharacteristic(SeneHistoryProtocol.dataStreamUuid)
-                    ?: throw HistoryDownloadException.Unsupported()
+                    ?: throw HistoryDownloadException.Protocol("The history service is missing its data stream.")
                 configureCccd(gatt, control, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE, events)
                 configureCccd(gatt, data, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, events)
 
@@ -229,7 +229,7 @@ class AndroidHistoryDownloader(
         events: ReceiveChannel<GattEvent>,
     ) {
         val descriptor = characteristic.getDescriptor(CCCD_UUID)
-            ?: throw HistoryDownloadException.Unsupported()
+            ?: throw HistoryDownloadException.Protocol("The history service is missing an update descriptor.")
         if (!gatt.setCharacteristicNotification(characteristic, true)) {
             throw HistoryDownloadException.Connection("Could not enable history updates.")
         }

@@ -4,7 +4,9 @@ Local Android monitoring for unencrypted BTHome v2 environmental BLE advertiseme
 
 ## Features
 
-- Dashboard with registered sensors first and live unregistered sensors after them.
+- Petrol Material dashboard with registered sensors first and nearby unregistered sensors after them.
+- All available environmental readings shown directly, with optional image/placement and a compact battery indicator.
+- Latest valid readings and their reception timestamps retained for registered sensors across restarts.
 - Registration with optional Android Photo Picker image.
 - Detail editing/removal with live protocol diagnostics and a history entry point.
 - Global downloaded-history retention setting.
@@ -27,7 +29,7 @@ Only `BLUETOOTH_SCAN` (`neverForLocation`) and `BLUETOOTH_CONNECT` are declared.
 
 Nearby Devices is requested only after the user chooses Allow. Bluetooth enable and app-settings actions are also user initiated.
 
-Registered sensors use normalized BLE addresses as identity; address randomization can make a device appear new. Room stores registered metadata and downloaded-history state; live BTHome advertisements remain memory-only. DataStore stores the downloaded-history retention preference, which is unlimited by default and offers 7/30/90/365-day choices for dated samples.
+Registered sensors use normalized BLE addresses as identity; address randomization can make a device appear new. Room stores registered metadata and downloaded-history state; unregistered BTHome advertisements remain memory-only; the latest valid measurement packet is stored with its reception timestamp for each registered sensor, without creating a live-derived historical series. DataStore stores the downloaded-history retention preference, which is unlimited by default and offers 7/30/90/365-day choices for dated samples.
 
 The app supports BTHome service UUID `0xFCD2`, v2, unencrypted packets. Temperature, humidity, pressure, CO2, battery, packet ID, timestamp, device type, and firmware are decoded with typed malformed/unsupported diagnostics. See [architecture](docs/architecture.md), [protocol support](docs/bthome-support.md), and [testing](docs/testing.md).
 

@@ -22,7 +22,12 @@ data class RegisteredSensor(
     val protocolDiagnostic: String?,
     val lastSupportStatus: SensorSupportStatus?,
     val supportedMeasurementTypes: Set<MeasurementType>,
+    val latestReading: LatestReading? = null,
+    val registrationId: String = "",
+    val historySupport: HistorySupport = HistorySupport.Unknown,
 )
+
+data class LatestReading(val measurements: BTHomeMeasurements, val receptionEpochMillis: Long)
 
 data class ScanObservation(
     val address: SensorAddress,
@@ -50,6 +55,7 @@ data class ScanObservation(
 }
 
 enum class SensorSupportStatus { Supported, Unsupported, Malformed }
+enum class HistorySupport { Unknown, Supported, Unsupported }
 enum class MeasurementType { Battery, Temperature, Humidity, Pressure, CarbonDioxide }
 
 data class MergedSensor(
@@ -60,6 +66,11 @@ data class MergedSensor(
     val supportStatus: SensorSupportStatus,
 ) {
     val isRegistered: Boolean get() = registeredSensor != null
+    val historySupport: HistorySupport get() = registeredSensor?.historySupport ?: HistorySupport.Unknown
+    val latestReading: LatestReading?
+        get() = observation?.measurements?.takeIf { it.hasSupportedValue }?.let {
+            LatestReading(it, observation.receptionEpochMillis)
+        } ?: registeredSensor?.latestReading
 }
 
 data class AppSettings(

@@ -37,8 +37,17 @@ interface RegisteredSensorDao {
 
 @Dao
 interface DownloadedHistoryDao {
+    @Query("SELECT registrationId FROM registered_sensors WHERE address = :address")
+    suspend fun registrationId(address: String): String?
+
+    @Query("UPDATE registered_sensors SET historySupport = :support WHERE address = :address AND registrationId = :registrationId")
+    suspend fun updateHistorySupport(address: String, registrationId: String, support: String): Int
+
     @Query("SELECT * FROM history_sync_states WHERE sensorAddress = :address")
     suspend fun syncState(address: String): HistorySyncStateEntity?
+
+    @Query("SELECT * FROM history_sync_states WHERE sensorAddress = :address")
+    fun observeSyncState(address: String): Flow<HistorySyncStateEntity?>
 
     @Query("SELECT COUNT(*) FROM downloaded_history_samples WHERE sensorAddress = :address")
     fun observeSampleCount(address: String): Flow<Int>
@@ -100,5 +109,17 @@ interface DownloadedHistoryDao {
             }
         }
         insertSyncState(state)
+    }
+
+    @Transaction
+    suspend fun commitForRegistration(
+        samples: List<DownloadedHistorySampleEntity>,
+        state: HistorySyncStateEntity,
+        mergeExactSourceRecords: Boolean,
+        expectedRegistrationId: String,
+    ): Boolean {
+        if (registrationId(state.sensorAddress) != expectedRegistrationId) return false
+        commitDownload(samples, state, mergeExactSourceRecords)
+        return true
     }
 }

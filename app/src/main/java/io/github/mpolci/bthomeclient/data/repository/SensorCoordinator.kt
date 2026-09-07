@@ -13,6 +13,7 @@ import io.github.mpolci.bthomeclient.domain.model.RegisteredSensor
 import io.github.mpolci.bthomeclient.domain.model.ScanObservation
 import io.github.mpolci.bthomeclient.domain.model.SensorAddress
 import io.github.mpolci.bthomeclient.domain.model.SensorSupportStatus
+import io.github.mpolci.bthomeclient.domain.model.LatestReading
 import io.github.mpolci.bthomeclient.util.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
@@ -34,6 +36,18 @@ interface SensorManager : SensorFeed {
     fun sensor(address: SensorAddress): Flow<MergedSensor?>
     suspend fun register(address: SensorAddress, displayName: String, room: String? = null, imageUri: String? = null)
     suspend fun updateEditableMetadata(address: SensorAddress, displayName: String, room: String?, imageUri: String?)
+    suspend fun updateLocalName(address: SensorAddress, displayName: String) {
+        val current = requireNotNull(sensor(address).first()?.registeredSensor)
+        updateEditableMetadata(address, displayName, current.room, current.imageUri)
+    }
+    suspend fun updatePlacement(address: SensorAddress, room: String?) {
+        val current = requireNotNull(sensor(address).first()?.registeredSensor)
+        updateEditableMetadata(address, current.displayName, room, current.imageUri)
+    }
+    suspend fun updateImage(address: SensorAddress, imageUri: String?) {
+        val current = requireNotNull(sensor(address).first()?.registeredSensor)
+        updateEditableMetadata(address, current.displayName, current.room, imageUri)
+    }
     suspend fun deleteRegistration(address: SensorAddress)
     suspend fun saveSettings(settings: AppSettings)
 }
@@ -44,8 +58,8 @@ class SensorCoordinator(
     private val settingsRepository: SettingsStore,
     private val clock: Clock,
     applicationScope: CoroutineScope,
+    private val mutationMutex: Mutex = Mutex(),
 ) : SensorManager {
-    private val mutationMutex = Mutex()
     private val observations = MutableStateFlow<Map<SensorAddress, ScanObservation>>(emptyMap())
     private val nowEpochMillis = MutableStateFlow(clock.nowEpochMillis())
 
@@ -75,10 +89,13 @@ class SensorCoordinator(
     override suspend fun observe(advertisement: ScanObservation) = mutationMutex.withLock {
         val previous = observations.value[advertisement.address]
         if (previous != null && advertisement.receptionEpochMillis < previous.receptionEpochMillis) return
+        val existing = registeredSensorDao.findByAddress(advertisement.address.value)
+        if (existing?.lastSeenEpochMillis?.let { advertisement.receptionEpochMillis < it } == true) return
         observations.value = observations.value + (advertisement.address to advertisement)
         nowEpochMillis.value = clock.nowEpochMillis()
 
-        val existing = registeredSensorDao.findByAddress(advertisement.address.value) ?: return
+        if (existing == null) return
+        val measurements = advertisement.measurements?.takeIf { it.hasSupportedValue }
         val updated = existing.copy(
             advertisedName = advertisement.advertisedName ?: existing.advertisedName,
             lastSeenEpochMillis = advertisement.receptionEpochMillis,
@@ -91,6 +108,12 @@ class SensorCoordinator(
             protocolDiagnostic = advertisement.parseResult.diagnosticText(),
             lastSupportStatus = advertisement.supportStatus().name,
             supportedMeasurementTypes = (existing.supportedMeasurementTypes?.split(',')?.filter { it.isNotBlank() }.orEmpty() + advertisement.measurementTypes().map { it.name }).distinct().sorted().joinToString(",").ifEmpty { null },
+            latestReadingEpochMillis = if (measurements != null) advertisement.receptionEpochMillis else existing.latestReadingEpochMillis,
+            latestTemperatureCelsius = if (measurements != null) measurements.temperatureCelsius else existing.latestTemperatureCelsius,
+            latestHumidityPercent = if (measurements != null) measurements.humidityPercent else existing.latestHumidityPercent,
+            latestPressureHectopascals = if (measurements != null) measurements.pressureHectopascals else existing.latestPressureHectopascals,
+            latestCarbonDioxidePpm = if (measurements != null) measurements.carbonDioxidePpm else existing.latestCarbonDioxidePpm,
+            latestBatteryPercent = if (measurements != null) measurements.batteryPercent else existing.latestBatteryPercent,
         )
         registeredSensorDao.update(updated)
     }
@@ -121,6 +144,8 @@ class SensorCoordinator(
                 protocolDiagnostic = observation?.parseResult?.diagnosticText(),
                 lastSupportStatus = observation?.supportStatus(),
                 supportedMeasurementTypes = observation?.measurementTypes()?.toSet().orEmpty(),
+                latestReading = observation?.measurements?.takeIf { it.hasSupportedValue }?.let { LatestReading(it, observation.receptionEpochMillis) },
+                registrationId = java.util.UUID.randomUUID().toString(),
             ).toEntity(),
         )
     }
@@ -129,6 +154,22 @@ class SensorCoordinator(
         require(displayName.isNotBlank())
         val current = requireNotNull(registeredSensorDao.findByAddress(address.value))
         registeredSensorDao.update(current.copy(displayName = displayName.trim(), room = room?.trim()?.ifBlank { null }, imageUri = imageUri))
+    }
+
+    override suspend fun updateLocalName(address: SensorAddress, displayName: String) = mutationMutex.withLock {
+        require(displayName.isNotBlank())
+        val current = requireNotNull(registeredSensorDao.findByAddress(address.value))
+        registeredSensorDao.update(current.copy(displayName = displayName.trim()))
+    }
+
+    override suspend fun updatePlacement(address: SensorAddress, room: String?) = mutationMutex.withLock {
+        val current = requireNotNull(registeredSensorDao.findByAddress(address.value))
+        registeredSensorDao.update(current.copy(room = room?.trim()?.ifBlank { null }))
+    }
+
+    override suspend fun updateImage(address: SensorAddress, imageUri: String?) = mutationMutex.withLock {
+        val current = requireNotNull(registeredSensorDao.findByAddress(address.value))
+        registeredSensorDao.update(current.copy(imageUri = imageUri))
     }
 
     override suspend fun deleteRegistration(address: SensorAddress) {
