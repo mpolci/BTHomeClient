@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import io.github.mpolci.bthomeclient.history.sene.SeneHistoryControlResponse
 import io.github.mpolci.bthomeclient.history.sene.SeneHistoryCursor
@@ -119,7 +120,9 @@ class AndroidHistoryDownloader(
                 configureCccd(gatt, data, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, events)
 
                 writeOpen(gatt, control, request, events)
-                when (val response = awaitControlResponse(events, timeouts.responseMillis)) {
+                val opened = awaitControlResponse(events, timeouts.responseMillis)
+                Log.i(TAG, "History open (${request::class.simpleName}) answered ${opened::class.simpleName}")
+                when (val response = opened) {
                     is SeneHistoryControlResponse.Empty -> emit(
                         HistoryDownloadEvent.Complete(HistoryDownloadResult.Empty(response.flags, response.finalCursor)),
                     )
@@ -165,6 +168,9 @@ class AndroidHistoryDownloader(
                 throw HistoryDownloadException.PermissionLost(error)
             } catch (error: CancellationException) {
                 withContext(NonCancellable) { cancelAndClose(gatt, activeTransferId, events) }
+                throw error
+            } catch (error: HistoryDownloadException) {
+                Log.w(TAG, "History download failed: ${error::class.simpleName}: ${error.message}")
                 throw error
             } finally {
                 activeTransferId = null
@@ -215,7 +221,7 @@ class AndroidHistoryDownloader(
     @Suppress("MissingPermission")
     private suspend fun discoverServices(gatt: BluetoothGatt, events: ReceiveChannel<GattEvent>) {
         if (!gatt.discoverServices()) throw HistoryDownloadException.Connection("Could not start service discovery.")
-        val event = awaitEvent(events, timeouts.operationMillis, "Service discovery timed out.")
+        val event = awaitOperationEvent(events, timeouts.operationMillis, "Service discovery timed out.")
         if (event !is GattEvent.Services || event.status != BluetoothGatt.GATT_SUCCESS) {
             throw HistoryDownloadException.Connection("Service discovery failed.")
         }
@@ -242,7 +248,7 @@ class AndroidHistoryDownloader(
             gatt.writeDescriptor(descriptor)
         }
         if (!enqueued) throw HistoryDownloadException.Connection("Could not configure history updates.")
-        val event = awaitEvent(events, timeouts.operationMillis, "History update configuration timed out.")
+        val event = awaitOperationEvent(events, timeouts.operationMillis, "History update configuration timed out.")
         if (event !is GattEvent.DescriptorWrite || event.descriptor !== descriptor || event.status != BluetoothGatt.GATT_SUCCESS) {
             throw HistoryDownloadException.Connection("History update configuration failed.")
         }
@@ -270,7 +276,7 @@ class AndroidHistoryDownloader(
             gatt.writeCharacteristic(control)
         }
         if (!enqueued) throw HistoryDownloadException.Connection("Could not send the history request.")
-        val event = awaitEvent(events, timeouts.operationMillis, "History request write timed out.")
+        val event = awaitOperationEvent(events, timeouts.operationMillis, "History request write timed out.")
         if (event !is GattEvent.CharacteristicWrite || event.characteristic !== control || event.status != BluetoothGatt.GATT_SUCCESS) {
             throw HistoryDownloadException.Connection("History request write failed.")
         }
@@ -370,20 +376,42 @@ class AndroidHistoryDownloader(
         val cancelMillis: Long = 1_000,
     )
 
-    private sealed interface GattEvent {
-        data class Connection(val status: Int, val newState: Int) : GattEvent
-        data class Disconnected(val status: Int) : GattEvent
-        data class Services(val status: Int) : GattEvent
-        data class Mtu(val mtu: Int, val status: Int) : GattEvent
-        data class DescriptorWrite(val descriptor: BluetoothGattDescriptor, val status: Int) : GattEvent
-        data class CharacteristicWrite(val characteristic: BluetoothGattCharacteristic, val status: Int) : GattEvent
-        data class Control(val value: ByteArray) : GattEvent
-        data class Data(val value: ByteArray) : GattEvent
-        data object Other : GattEvent
-    }
-
     private companion object {
+        const val TAG = "HistoryDownloader"
         const val PREFERRED_MTU = 247
         val CCCD_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
     }
+}
+
+internal sealed interface GattEvent {
+    data class Connection(val status: Int, val newState: Int) : GattEvent
+    data class Disconnected(val status: Int) : GattEvent
+    data class Services(val status: Int) : GattEvent
+    data class Mtu(val mtu: Int, val status: Int) : GattEvent
+    data class DescriptorWrite(val descriptor: BluetoothGattDescriptor, val status: Int) : GattEvent
+    data class CharacteristicWrite(val characteristic: BluetoothGattCharacteristic, val status: Int) : GattEvent
+    data class Control(val value: ByteArray) : GattEvent
+    data class Data(val value: ByteArray) : GattEvent
+    data object Other : GattEvent
+}
+
+/**
+ * Returns the callback that answers the pending GATT operation, within one overall timeout.
+ *
+ * MTU and unrelated-characteristic callbacks are skipped: Android reports the MTU of a link that was already up
+ * when the client attaches to it, in addition to answering the explicit request, so such a callback can arrive
+ * while a later operation is pending. Every other callback is returned for the caller to validate.
+ */
+internal suspend fun awaitOperationEvent(
+    events: ReceiveChannel<GattEvent>,
+    timeoutMillis: Long,
+    timeoutMessage: String,
+): GattEvent = try {
+    withTimeout(timeoutMillis) {
+        var event = events.receive()
+        while (event is GattEvent.Mtu || event is GattEvent.Other) event = events.receive()
+        event
+    }
+} catch (_: kotlinx.coroutines.TimeoutCancellationException) {
+    throw HistoryDownloadException.Timeout(timeoutMessage)
 }
